@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %} API Data {% endblock %}
+
+{% block content %}
+<h1> Api List </h1>
+    <table>
+            <tr>
+                <th>Source</th>
+                <th>title</th>
+                <th>PublishedDate</th>
+                <th>unique_id</th>
+            </tr>
+        <tbody>
+            {% for x in data %}
+            <tr>
+                <td>{{ data[0] }}</td>
+                <td>{{ daat[1] }}</td>
+                <td> {{ data[2] }} </td>
+                <td>{{ data[3] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+adadfa
