@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template
 import mysql.connector
 
 
@@ -13,11 +13,10 @@ mydb = mysql.connector.connect(
 
 @app.route('/details', methods=['GET'])
 def api_details():
-   
-    cursor = mydb.cursor()
-    cursor.execute('Select * from test1')
-    data = cursor.fetchall()
-    return render_template('nyt.html', data = data)
+        cursor = mydb.cursor()
+        cursor.execute('Select Source, title, PublishedDate, unique_id from test1')
+        data = cursor.fetchall()
+        return render_template('nyt.html', data = data)
 
 if __name__ == "__main__":
     app.run(host = '0.0.0.0', debug = True, port = 5000)

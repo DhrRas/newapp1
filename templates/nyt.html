@@ -3,7 +3,6 @@
 
 {% block content %}
 <h1> Api List </h1>
-<body>
     <style>
         td {
             width: auto;
@@ -12,7 +11,10 @@
             padding: 5px;
         }
     </style>
-    <table>
+
+    <button onclick="fetchData()">Fetch Data</button>
+
+    <table  id='dataTable' style="display: none;">
         <thead>
             <tr>
                 <th>Source</th>
@@ -32,5 +34,10 @@
             {% endfor %}
         </tbody>
     </table>
-    </body>
+
+<script>
+    function myfunction() {
+        pass
+    }
+</script>
 {% endblock %}
