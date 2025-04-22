@@ -11,30 +11,42 @@ mydb = mysql.connector.connect(
         database = 'mysql'
     )
 
-@app.route('/details', methods=['GET'])
+def Filter_by_date(filter_value):
+      cursor = mydb.cursor()
+      query = 'Select Source, title, PublishedDate, unique_id from test1 WHERE PublishedDate = %s'
+      cursor.execute(query, (filter_value,))
+      return cursor.fetchall()
+
+def filter_by_source(filter_value):
+      cursor = mydb.cursor()
+      query = 'Select Source, title, PublishedDate, unique_id from test1 WHERE Source = %s'
+      cursor.execute(query, (filter_value, ))
+      return cursor.fetchall()
+
+@app.route('/details', methods=['GET', 'POST'])
 def api_details():
         
-        filter_type = request.args.get('filter')
-        filter_value = request.args.get('value')
+        filter_type = request.form.get('filter') if request.method == 'POST' else request.args.get('filter')
+        filter_value = request.form.get('value') if request.method == 'POST' else request.args.get('value')
 
         cursor = mydb.cursor()
         query = 'Select Source, title, PublishedDate, unique_id from test1'
         values = []
 
-        if filter_type  and filter_value:
-              if filter_type == 'data':
-                    query += 'Where PublishedDate = %s'
-                    values.apped(filter.value)
-              elif filter_type == 'source':
-                    query += 'Where Source = %s'
-                    values.append(filter_value)
+        if filter_type and filter_value:
+                    if filter_type == 'data':
+                            query += 'WHERE PublishedDate = %s'
+                            values.append(filter_value)
+                    elif filter_type == 'source':
+                        query += 'WHERE Source = %s'
+                        values.append(filter_value)
+                    else:
+                        return "Invalid filter type", 400
         
         cursor.execute(query, tuple(values))
         data = cursor.fetchall()
+        
         return render_template('display.html', data = data, selected_filter = filter_type, filter_value = filter_value)
-
-
-
 
 if __name__ == "__main__":
     app.run(host = '0.0.0.0', debug = True, port = 5000)
