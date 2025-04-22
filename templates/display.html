@@ -49,6 +49,10 @@
         </tbody>
     </table>
 
+    {% if not data %}
+     <p> No results found for the filter criteria. </p>
+    {% endif %}
+
 <script>
     function fetchData(){
         return document.getElementById('dataTable').style.display = 'table'
