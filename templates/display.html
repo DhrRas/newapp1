@@ -12,13 +12,15 @@
         }
     </style>
 
-    <button id="fetchData()">Fetch Data</button>
+    <button onclick ="fetchData()">Fetch Data</button>
     
-    <select name="" id ="api_data">
-        <option value = 'By 1 day'>1 day</option>
-        <option value = 'By date'> Date </option>
-        <option value = 'By source'>Source</option>
-    </select>
+    
+<select name="Filter By" >
+    {% for items in dropdown_list %}
+    <option value = "{{items}}">{{items}}</option>
+    {% endfor %}
+</select>
+
     <table  id='dataTable' style="display:none;">
         <thead>
             <tr>
@@ -40,18 +42,11 @@
         </tbody>
     </table>
 
-
-    <div id="dataContainer"></div>
 <script>
-    const button = document.getElementById('fetchData');
-    const container = document.getElementById('DataContainer');
-
-    button.addEventListener('click', ()=> {
-        fetch('/details')
-            .then(response => response.json())
-            .catch(error => {
-                console.error('Error fetch data:', error);
-            });
-    });
+    function fetchData(){
+        return document.getElementById('dataTable').style.display = 'table'
+    }
 </script>
+
+
 {% endblock %}

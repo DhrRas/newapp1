@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template
 import mysql.connector
 
 
@@ -16,7 +16,12 @@ def api_details():
         cursor = mydb.cursor()
         cursor.execute('Select Source, title, PublishedDate, unique_id from test1')
         data = cursor.fetchall()
-        return jsonify(data)
+        return render_template('display.html', data = data)
+
+def view_method():
+      dropdown_list = ['Air', 'Land', 'Sea']
+      return render_template('display.html', dropdown_list = dropdown_list)
+
 
 if __name__ == "__main__":
     app.run(host = '0.0.0.0', debug = True, port = 5000)
