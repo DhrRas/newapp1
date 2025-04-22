@@ -12,15 +12,21 @@
         }
     </style>
 
-    <button onclick ="fetchData()">Fetch Data</button>
-    
-    
-<select name="Filter By" >
-    {% for items in dropdown_list %}
-    <option value = "{{items}}">{{items}}</option>
-    {% endfor %}
-</select>
+<button onclick ="fetchData()">Fetch Data</button>
 
+<form method="GET" action="/details">
+    <label for="filter">Filter By:</label>
+    <select name="filter" id="filter">
+        <option value="date" {% if selected_filter == 'date' %} selected {% endif %}>Published Date </option>
+        <option value="source" {% if selected_filter == 'source' %} selected {% endif %}>Source</option>
+    </select>
+
+    <input type="text" name="value" id="filterValue" placeholder="Enter Value" value="{{ filter_value}}">
+    <input type="submit" value="Apply Filter">
+
+</form>
+
+<br/><br/>
     <table  id='dataTable' style="display:none;">
         <thead>
             <tr>
