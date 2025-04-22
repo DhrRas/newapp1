@@ -16,7 +16,7 @@ def api_details():
         cursor = mydb.cursor()
         cursor.execute('Select Source, title, PublishedDate, unique_id from test1')
         data = cursor.fetchall()
-        return render_template('nyt.html', data = data)
+        return render_template('display.html', data = data)
 
 if __name__ == "__main__":
     app.run(host = '0.0.0.0', debug = True, port = 5000)

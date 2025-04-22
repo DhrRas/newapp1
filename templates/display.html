@@ -13,8 +13,12 @@
     </style>
 
     <button onclick="fetchData()">Fetch Data</button>
-
-    <table  id='dataTable' style="display: none;">
+    <select name="" id ="api_data">
+        <option value = 'By 1 day'>1 day</option>
+        <option value = 'By '></option>
+        <option 
+    </select>
+    <table  id='dataTable' style="display:none;">
         <thead>
             <tr>
                 <th>Source</th>
@@ -36,8 +40,8 @@
     </table>
 
 <script>
-    function myfunction() {
-        pass
+    function fetchData() {
+        document.getElementById('dataTable').style.display = 'table'
     }
 </script>
 {% endblock %}
