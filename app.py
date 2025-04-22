@@ -76,10 +76,10 @@ if __name__ == "__main__":
 # in fetch() you can show that whether is fetching the data or not. for only one time.
 # one more thing while using fetching function it should display the latestly added data or than 
 # the ones which you added earlier. so this is the difference you've to keep in mind.
-
+# display is like showing the whole database entries while fetch will only show me the latest one added.
 
 # then lastly add a filter options 
-# 1. by keywords
+# 1. by keywords => it should fetches some data according to that. and same should apply for all filter options.
 # 2. by date
 # 3. by timestamp
 # 4. by source if required.
