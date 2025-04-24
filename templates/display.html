@@ -12,11 +12,11 @@
         }
     </style>
 <form action="/details" method="POST">
-    <button type="submit">Fetch Data</button>
+    <button type="submit" name="fetch_data">Fetch Data</button>
 </form>
 
 <form action="/details" method="GET">
-    <button type="submit">Display All</button>
+    <button type="submit" name="display_data">Display All</button>
 </form>
 
 {% if message %}
@@ -24,6 +24,7 @@
 {% endif %}
 
 <br/><br/>
+{% if data %}
     <table>
         <thead>
             <tr>
