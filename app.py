@@ -14,7 +14,7 @@ mydb = mysql.connector.connect(
     )
 mycursor = mydb.cursor()
 
-def unique_id_exist(unique_id):
+def unique_id_exist(unique_id):   # it is used to test so no duplication is there
      mycursor.execute('select 1 from test1 WHERE unique_id = %s LIMIT 1', (unique_id,))
      return mycursor.fetchone() is not None
 
@@ -25,9 +25,6 @@ def home():
      message = None
      latest_records = []
 
-
-     #mycursor.execute('select count(*) from test1')
-     #count = mycursor.fetchone()[0]
 
      if request.method == 'POST' and 'fetch_data' in request.form:
           #if count == 0:
@@ -51,7 +48,7 @@ def home():
                          latest_records.append((source, title, PublishedDate, unique_id))
                     else:
                          message = 'some records already exist. Showing latest fetched records.'
-                         latest_records.append((source, title, PublishedDate, unique_id))
+                         
                     
 
                def yahoo_api():
@@ -76,7 +73,7 @@ def home():
                          latest_records.append((source, title, PublishedDate, unique_id))
                     else:
                          message = 'some records already exist. Showing latest fetched records.'
-                         latest_records.append((source, title, PublishedDate, unique_id))
+                         
                     
 
                def cnbc_api():
@@ -101,7 +98,7 @@ def home():
                          latest_records.append((source, title, PublishedDate, unique_id))
                     else:
                          message = 'some records already exist. Showing latest fetched records.'
-                         latest_records.append((source, title, PublishedDate, unique_id))
+                         
                     
 
                def Theguardian_api():
@@ -125,7 +122,7 @@ def home():
                          latest_records.append((source, title, PublishedDate, unique_id))
                     else:
                          message = 'some records already exist. Showing latest fetched records.'
-                         latest_records.append((source, title, PublishedDate, unique_id))
+                         
                     
 
                def news_api_content(): 
@@ -148,7 +145,7 @@ def home():
                          latest_records.append((source, title, PublishedDate, unique_id))
                     else:
                          message = 'some records already exist. Showing latest fetched records.'
-                         latest_records.append((source,title, PublishedDate, unique_id))
+                         
                     
 
 
@@ -175,13 +172,6 @@ if __name__ == "__main__":
 mycursor.close()
 mydb.close()
 
-#note: try to implement 2 functions like fetch() and display()
-# fetch fetches the data from data like the one you did.
-# and display is what you are doing right now. i.e just showing or displaying.
-# in fetch() you can show that whether is fetching the data or not. for only one time.
-# one more thing while using fetching function it should display the latestly added data or than 
-# the ones which you added earlier. so this is the difference you've to keep in mind.
-# display is like showing the whole database entries while fetch will only show me the latest one added.
 
 # then lastly add a filter options 
 # 1. by keywords => it should fetches some data according to that. and same should apply for all filter options.
