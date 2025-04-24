@@ -11,25 +11,20 @@
             padding: 5px;
         }
     </style>
-
-<button onclick ="fetchData()">Fetch Data</button> <!--this will display the latest data which is inserted.-->  
-<button onclick = 'display()'>Display</button>  <!--this will display whole db-->
-
-<form method="POST" action="/details">
-    <label for="filter">Filter By:</label>
-    <select name="filter" id="filter">
-        <option value="date" {% if selected_filter == 'date' %} selected {% endif %}>Published Date </option>
-        <option value="source" {% if selected_filter == 'source' %} selected {% endif %}>Source</option>
-    </select>
-
-    <label for="filterValue">Enter Value:</label>
-    <input type="text" name="value" id="filterValue" placeholder="Enter value " value="{{ filter_value }}">
-    <input type="submit" value="Apply Filter">
-
+<form action="/details" method="POST">
+    <button type="submit">Fetch Data</button>
 </form>
 
+<form action="/details" method="GET">
+    <button type="submit">Display All</button>
+</form>
+
+{% if message %}
+    <p style="color:red;">{{ message }}</p>
+{% endif %}
+
 <br/><br/>
-    <table  id='dataTable' style="display:none;">
+    <table>
         <thead>
             <tr>
                 <th>Source</th>
@@ -49,44 +44,16 @@
             {% endfor %}
         </tbody>
     </table>
-
-    {% if not data %}
-     <p> No results found for the filter criteria. </p>
+    {% else %}
+        <p>No data available yet. Click 'Fetch Data' to fetch the latest news. </p>
     {% endif %}
 
-
-<br/><br/>
-    <table  id='dataTable1' style="display:none;">
-        <thead>
-            <tr>
-                <th>Source</th>
-                <th>title</th>
-                <th>PublishedDate</th>
-                <th>unique_id</th>
-            </tr>
-            </thead>
-        <tbody>
-            {% for row in data %}
-            <tr>
-                <td>{{ row[0] }}</td>
-                <td>{{ row[1] }}</td>
-                <td> {{ row[2] }} </td>
-                <td><a href ="{{row[3]}}" target="_blank">{{row[3]}}</a></td> 
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <h2>
+        {% if data and data|length < 20 %}
+            Showing Latest Fetched News
+        {% else %}
+            Showing All News from Database
+        {% endif %}
+    </h2>
     
-
-<script>
-    function display(){
-        return document.getElementById('dataTable').style.display = 'table'
-    }
-
-    function fetchData(){
-        return document.getElementById('dataTable1').style.display = 'table'
-    }
-</script>
-
-
 {% endblock %}

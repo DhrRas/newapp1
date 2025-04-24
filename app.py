@@ -14,172 +14,147 @@ mydb = mysql.connector.connect(
     )
 mycursor = mydb.cursor()
 
-def filter_by_date(filter_value):
-      query = 'Select Source, title, PublishedDate, unique_id from test1 WHERE PublishedDate = %s'
-      mycursor.execute(query, (filter_value,))
-      data = mycursor.fetchall()
-      print('Data fetched by date filter: ', data)
-      return data
+def unique_id_exist(unique_id):
+     mycursor.execute('select 1 from test1 WHERE unique_id = %s LIMIT 1', (unique_id))
+     return mycursor.fetchone() is not None
 
-def filter_by_source(filter_value):
-      query = 'Select Source, title, PublishedDate, unique_id from test1 WHERE Source = %s'
-      mycursor.execute(query, (filter_value, ))
-      data = mycursor.fetchall()
-      print('Data fetched by source filter: ', data)
-      return data
+@app.route('/details', methods=['GET','POST'])
 
+def home():
+     inserted_data = []
+     message = None
+     latest_records = []
 
-@app.route('/details', methods=['GET', 'POST'])
+     if request.method == 'POST' and 'fetch_data' in request.form:
+          def nyt_api():
+               requestUrl = "https://api.nytimes.com/svc/news/v3/content/all/'business'.json?limit=20&api-key=NIYJ7DwbZDKjtgBI4xKGUPGim572tRKi"
+               response = requests.get(requestUrl)
+               return response.json()
 
-def all_api_data():
-     def nyt_api():
-          requestUrl = "https://api.nytimes.com/svc/news/v3/content/all/'business'.json?limit=20&api-key=NIYJ7DwbZDKjtgBI4xKGUPGim572tRKi"
-          response = requests.get(requestUrl)
-          return response.json()
+          a1 = nyt_api()
+          for x in range(2,6):
+               first_var = a1['results'][x]
+               title = first_var['title']
+               source = first_var['source']
+               PublishedDate = first_var['published_date']
+               unique_id = first_var['url']
 
-     a1 = nyt_api()
-     for x in range(2,6):
-          first_var = a1['results'][x]
-          title = first_var['title']
-          source = first_var['source']
-          PublishedDate = first_var['published_date']
-          unique_id = first_var['url']
-
-          sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
-          val = (source, title, PublishedDate, unique_id)
-          data = mycursor.execute(sql,val)
-          return data
-          #print(title,source,PublishedDate, unique_id)
-          #print('---------------------------------nytimes done!---------------------------------' + '\n')
+               if not unique_id_exist(unique_id):
+                    sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
+                    val = (source, title, PublishedDate, unique_id)
+                    mycursor.execute(sql,val)
+                    latest_records.append((source, title, PublishedDate, unique_id))
+               else:
+                    message = 'some records already exist. Showing latest fetched records.'
+                    latest_records.append((source, title, PublishedDate, unique_id))
 
 
-     def yahoo_api():
-          url = "https://yahoo-finance15.p.rapidapi.com/api/v2/markets/news"
-          querystring = {"tickets":"AAPL", "type": "ALL"}
-          headers = {"x-rapidapi-key":"65d7cf85b0msh88f548ccee39fe9p121f4ejsnafcc4d564117", "x-rapidapi-host": "yahoo-finance15.p.rapidapi.com" }
-          response = requests.get(url, headers = headers, params = querystring )
-          return response.json()
+          def yahoo_api():
+               url = "https://yahoo-finance15.p.rapidapi.com/api/v2/markets/news"
+               querystring = {"tickets":"AAPL", "type": "ALL"}
+               headers = {"x-rapidapi-key":"65d7cf85b0msh88f548ccee39fe9p121f4ejsnafcc4d564117", "x-rapidapi-host": "yahoo-finance15.p.rapidapi.com" }
+               response = requests.get(url, headers = headers, params = querystring )
+               return response.json()
 
-     a2 = yahoo_api()
-     for x in range(1,20):
-          second_var = a2['body'][x]
-          title = second_var['title']
-          source = second_var['source']
-          PublishedDate = second_var['time']
-          unique_id = second_var['url']
+          a2 = yahoo_api()
+          for x in range(1,20):
+               second_var = a2['body'][x]
+               title = second_var['title']
+               source = second_var['source']
+               PublishedDate = second_var['time']
+               unique_id = second_var['url']
 
-          sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
-          val = (source, title, PublishedDate, unique_id)
-          data = mycursor.execute(sql,val)
-          return data
-          #print(title, source, PublishedDate, unique_id)
-          #print('--------------------------------yahoo done!-----------------------------------' + '\n')
+               if not unique_id_exist(unique_id):
+                    sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
+                    val = (source, title, PublishedDate, unique_id)
+                    mycursor.execute(sql,val)
+                    latest_records.append((source, title, PublishedDate, unique_id))
+               else:
+                    message = 'some records already exist. Showing latest fetched records.'
+                    latest_records.append((source, title, PublishedDate, unique_id))
 
+          def cnbc_api():
+               url = "https://cnbc.p.rapidapi.com/news/v2/list-trending"
+               query = {"tag":"Articles","count":"30"}
+               headers = {"x-rapidapi-key":"65d7cf85b0msh88f548ccee39fe9p121f4ejsnafcc4d564117","x-rapidapi-host":"cnbc.p.rapidapi.com"}
+               response = requests.get(url, headers = headers, params = query)
+               return response.json()
 
-     def cnbc_api():
-          url = "https://cnbc.p.rapidapi.com/news/v2/list-trending"
-          query = {"tag":"Articles","count":"30"}
-          headers = {"x-rapidapi-key":"65d7cf85b0msh88f548ccee39fe9p121f4ejsnafcc4d564117","x-rapidapi-host":"cnbc.p.rapidapi.com"}
-          response = requests.get(url, headers = headers, params = query)
-          return response.json()
+          a3 = cnbc_api()
+          for x in range(1,20):
+               third_var = a3['data']['mostPopularEntries']['assets'][x]
+               title = third_var['headline']
+               source = 'CNBC'
+               PublishedDate = third_var['shortDateFirstPublished']
+               unique_id = third_var['id']
 
-     a3 = cnbc_api()
-     for x in range(1,20):
-          third_var = a3['data']['mostPopularEntries']['assets'][x]
-          title = third_var['headline']
-          source = 'CNBC'
-          PublishedDate = third_var['shortDateFirstPublished']
-          unique_id = third_var['id']
+               if not unique_id_exist(unique_id):
+                    sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
+                    val = (source, title, PublishedDate, unique_id)
+                    mycursor.execute(sql,val)
+                    latest_records.append((source, title, PublishedDate, unique_id))
+               else:
+                    message = 'some records already exist. Showing latest fetched records.'
+                    latest_records.append((source, title, PublishedDate, unique_id))
 
-          sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
-          val = (source, title, PublishedDate, unique_id)
-          data = mycursor.execute(sql,val)
-          return data
-          #print(title, source, PublishedDate, unique_id) 
-          #print('-------------------cnbc done!--------------------------------' + '\n')
+          def Theguardian_api():
+               url = "http://content.guardianapis.com/world?from-date=2021-01-01&page = 1"
+               payload = {"api-key":"70254526-e859-472f-bbdc-e820dc781b6e", "show-fields":"all"}
+               response = requests.get(url, params = payload)
+               return response.json()
 
-     def Theguardian_api():
-          url = "http://content.guardianapis.com/world?from-date=2021-01-01&page = 1"
-          payload = {"api-key":"70254526-e859-472f-bbdc-e820dc781b6e", "show-fields":"all"}
-          response = requests.get(url, params = payload)
-          return response.json()
-
-     a4 = Theguardian_api()
-     for x in range(1,10):
-          fourth_var = a4['response']['results'][x]
-          title = fourth_var['webTitle']
-          source = fourth_var['fields']['publication']
-          PublishedDate = fourth_var['fields']['firstPublicationDate']
-          unique_id = fourth_var['webUrl']
+          a4 = Theguardian_api()
+          for x in range(1,10):
+               fourth_var = a4['response']['results'][x]
+               title = fourth_var['webTitle']
+               source = fourth_var['fields']['publication']
+               PublishedDate = fourth_var['fields']['firstPublicationDate']
+               unique_id = fourth_var['webUrl']
     
-          sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
-          val = (source, title, PublishedDate, unique_id)
-          data = mycursor.execute(sql,val)
-          return data
-          #print(title, source, PublishedDate, unique_id)    
-          #print('-------------theguardian done!-----------' + '\n')
+               if not unique_id_exist(unique_id):
+                    sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
+                    val = (source, title, PublishedDate, unique_id)
+                    mycursor.execute(sql,val)
+                    latest_records.append((source, title, PublishedDate, unique_id))
+               else:
+                    message = 'some records already exist. Showing latest fetched records.'
+                    latest_records.append((source, title, PublishedDate, unique_id))
 
-     def news_api_content(): 
-          newsapi = NewsApiClient(api_key = "c15034b58ee244fc843bb4906e71e8bd")
-          top_headlines = newsapi.get_top_headlines(language = 'en',sources = 'cnn', page = 1)
-          return top_headlines
+          def news_api_content(): 
+               newsapi = NewsApiClient(api_key = "c15034b58ee244fc843bb4906e71e8bd")
+               top_headlines = newsapi.get_top_headlines(language = 'en',sources = 'cnn', page = 1)
+               return top_headlines
 
-     a5 = news_api_content()
-     for x in range(1,10):
-          fifth_var = a5['articles'][x]
-          title = fifth_var['title']
-          source = fifth_var['source']['name']
-          PublishedDate = fifth_var['publishedAt']
-          unique_id = fifth_var['url']
+          a5 = news_api_content()
+          for x in range(1,10):
+               fifth_var = a5['articles'][x]
+               title = fifth_var['title']
+               source = fifth_var['source']['name']
+               PublishedDate = fifth_var['publishedAt']
+               unique_id = fifth_var['url']
 
-          sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
-          val = (source, title, PublishedDate, unique_id)
-          data = mycursor.execute(sql,val)
-          return data
-          #print('------------------------------news api done!------------------' + '\n')
-
-     query = 'select * from test1 where PublishedDate = 2025-04-24'
-     mycursor.execute(query)
-     return render_template('display.html', data = data)
-
+               if not unique_id_exist(unique_id):
+                    sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
+                    val = (source, title, PublishedDate, unique_id)
+                    mycursor.execute(sql,val)
+                    latest_records.append((source, title, PublishedDate, unique_id))
+               else:
+                    message = 'some records already exist. Showing latest fetched records.'
+                    latest_records.append((source, title, PublishedDate, unique_id))
 
 
-def api_details():
-     filter_type = None
-     filter_value = None
-     data = []
+          mydb.commit()
+     elif request.method == 'GET' and 'display_data' in request.form:
+          mycursor.execute('select * from test1 ')
+          inserted_data = mycursor.fetchall()
 
-     if request.method == 'POST':
-          filter_type = request.form.get('filter')
-          filter_value = request.form.get('value')
-
-         # print(f'Filter Type: {filter_type}, Filter value: {filter_value}')
-
-     if filter_type == 'date' and filter_value:
-          data = filter_by_date(filter_value)
-
-     elif filter_type == 'source' and filter_value:
-          data = filter_by_source(filter_value)
-
-     elif not filter_type or not filter_value:
-          cursor = mydb.cursor()
-          cursor.execute('SELECT Source, title, PublishedDate, unique_id from test1')
-          data = cursor.fetchall()
-     else:
-          return "Invalid filter type", 400
      
-     if not data:
-          print('No data returned for the filter criteria.')
-        
-     return render_template('display.html', data=data, selected_filter=filter_type,filter_value=filter_value)
-
-
+     return render_template('display.html', data = latest_records, message = message )
 
 
 if __name__ == "__main__":
     app.run(host = '0.0.0.0', debug = True, port = 5000)
 
-mydb.commit()
 mycursor.close()
 mydb.close()
 
