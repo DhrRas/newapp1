@@ -26,11 +26,11 @@ def home():
      latest_records = []
 
 
-     mycursor.execute('select count(*) from test1')
-     count = mycursor.fetchone()[0]
+     #mycursor.execute('select count(*) from test1')
+     #count = mycursor.fetchone()[0]
 
      if request.method == 'POST' and 'fetch_data' in request.form:
-          if count == 0:
+          #if count == 0:
                def nyt_api():
                     requestUrl = "https://api.nytimes.com/svc/news/v3/content/all/'business'.json?limit=20&api-key=NIYJ7DwbZDKjtgBI4xKGUPGim572tRKi"
                     response = requests.get(requestUrl)
@@ -51,6 +51,7 @@ def home():
                          latest_records.append((source, title, PublishedDate, unique_id))
                     else:
                          message = 'some records already exist. Showing latest fetched records.'
+                         latest_records.append((source, title, PublishedDate, unique_id))
                     
 
                def yahoo_api():
@@ -75,6 +76,7 @@ def home():
                          latest_records.append((source, title, PublishedDate, unique_id))
                     else:
                          message = 'some records already exist. Showing latest fetched records.'
+                         latest_records.append((source, title, PublishedDate, unique_id))
                     
 
                def cnbc_api():
@@ -99,6 +101,7 @@ def home():
                          latest_records.append((source, title, PublishedDate, unique_id))
                     else:
                          message = 'some records already exist. Showing latest fetched records.'
+                         latest_records.append((source, title, PublishedDate, unique_id))
                     
 
                def Theguardian_api():
@@ -122,6 +125,7 @@ def home():
                          latest_records.append((source, title, PublishedDate, unique_id))
                     else:
                          message = 'some records already exist. Showing latest fetched records.'
+                         latest_records.append((source, title, PublishedDate, unique_id))
                     
 
                def news_api_content(): 
@@ -144,19 +148,23 @@ def home():
                          latest_records.append((source, title, PublishedDate, unique_id))
                     else:
                          message = 'some records already exist. Showing latest fetched records.'
+                         latest_records.append((source,title, PublishedDate, unique_id))
                     
 
 
-          mydb.commit()
+               mydb.commit()
 
      elif request.method == 'POST' and 'display_data' in request.form:
           mycursor.execute('select * from test1 ')
           inserted_data = mycursor.fetchall()
+          
 
      if latest_records:
           return render_template('display.html', data = latest_records, message = message)
+     
      elif inserted_data:
           return render_template('display.html', data = inserted_data, message = None)
+     
      else:
           return render_template('display.html', data = [], message = 'No data available.')
 
