@@ -12,7 +12,8 @@
         }
     </style>
 
-<button onclick ="fetchData()">Fetch Data</button>
+<button onclick ="fetchData()">Fetch Data</button> <!--this will display the latest data which is inserted.-->  
+<button onclick = 'display()'>Display</button>  <!--this will display whole db-->
 
 <form method="POST" action="/details">
     <label for="filter">Filter By:</label>
@@ -53,9 +54,37 @@
      <p> No results found for the filter criteria. </p>
     {% endif %}
 
+
+<br/><br/>
+    <table  id='dataTable1' style="display:none;">
+        <thead>
+            <tr>
+                <th>Source</th>
+                <th>title</th>
+                <th>PublishedDate</th>
+                <th>unique_id</th>
+            </tr>
+            </thead>
+        <tbody>
+            {% for row in data %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td> {{ row[2] }} </td>
+                <td><a href ="{{row[3]}}" target="_blank">{{row[3]}}</a></td> 
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+
 <script>
-    function fetchData(){
+    function display(){
         return document.getElementById('dataTable').style.display = 'table'
+    }
+
+    function fetchData(){
+        return document.getElementById('dataTable1').style.display = 'table'
     }
 </script>
 

@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request
 import mysql.connector
+import requests
+from newsapi import NewsApiClient
 
 
 app = Flask(__name__, template_folder='templates')
@@ -10,24 +12,138 @@ mydb = mysql.connector.connect(
         password = '1234',
         database = 'mysql'
     )
+mycursor = mydb.cursor()
 
 def filter_by_date(filter_value):
-      cursor = mydb.cursor()
       query = 'Select Source, title, PublishedDate, unique_id from test1 WHERE PublishedDate = %s'
-      cursor.execute(query, (filter_value,))
-      data = cursor.fetchall()
+      mycursor.execute(query, (filter_value,))
+      data = mycursor.fetchall()
       print('Data fetched by date filter: ', data)
       return data
 
 def filter_by_source(filter_value):
-      cursor = mydb.cursor()
       query = 'Select Source, title, PublishedDate, unique_id from test1 WHERE Source = %s'
-      cursor.execute(query, (filter_value, ))
-      data = cursor.fetchall()
+      mycursor.execute(query, (filter_value, ))
+      data = mycursor.fetchall()
       print('Data fetched by source filter: ', data)
       return data
 
+
 @app.route('/details', methods=['GET', 'POST'])
+
+def all_api_data():
+     def nyt_api():
+          requestUrl = "https://api.nytimes.com/svc/news/v3/content/all/'business'.json?limit=20&api-key=NIYJ7DwbZDKjtgBI4xKGUPGim572tRKi"
+          response = requests.get(requestUrl)
+          return response.json()
+
+     a1 = nyt_api()
+     for x in range(2,6):
+          first_var = a1['results'][x]
+          title = first_var['title']
+          source = first_var['source']
+          PublishedDate = first_var['published_date']
+          unique_id = first_var['url']
+
+          sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
+          val = (source, title, PublishedDate, unique_id)
+          data = mycursor.execute(sql,val)
+          return data
+          #print(title,source,PublishedDate, unique_id)
+          #print('---------------------------------nytimes done!---------------------------------' + '\n')
+
+
+     def yahoo_api():
+          url = "https://yahoo-finance15.p.rapidapi.com/api/v2/markets/news"
+          querystring = {"tickets":"AAPL", "type": "ALL"}
+          headers = {"x-rapidapi-key":"65d7cf85b0msh88f548ccee39fe9p121f4ejsnafcc4d564117", "x-rapidapi-host": "yahoo-finance15.p.rapidapi.com" }
+          response = requests.get(url, headers = headers, params = querystring )
+          return response.json()
+
+     a2 = yahoo_api()
+     for x in range(1,20):
+          second_var = a2['body'][x]
+          title = second_var['title']
+          source = second_var['source']
+          PublishedDate = second_var['time']
+          unique_id = second_var['url']
+
+          sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
+          val = (source, title, PublishedDate, unique_id)
+          data = mycursor.execute(sql,val)
+          return data
+          #print(title, source, PublishedDate, unique_id)
+          #print('--------------------------------yahoo done!-----------------------------------' + '\n')
+
+
+     def cnbc_api():
+          url = "https://cnbc.p.rapidapi.com/news/v2/list-trending"
+          query = {"tag":"Articles","count":"30"}
+          headers = {"x-rapidapi-key":"65d7cf85b0msh88f548ccee39fe9p121f4ejsnafcc4d564117","x-rapidapi-host":"cnbc.p.rapidapi.com"}
+          response = requests.get(url, headers = headers, params = query)
+          return response.json()
+
+     a3 = cnbc_api()
+     for x in range(1,20):
+          third_var = a3['data']['mostPopularEntries']['assets'][x]
+          title = third_var['headline']
+          source = 'CNBC'
+          PublishedDate = third_var['shortDateFirstPublished']
+          unique_id = third_var['id']
+
+          sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
+          val = (source, title, PublishedDate, unique_id)
+          data = mycursor.execute(sql,val)
+          return data
+          #print(title, source, PublishedDate, unique_id) 
+          #print('-------------------cnbc done!--------------------------------' + '\n')
+
+     def Theguardian_api():
+          url = "http://content.guardianapis.com/world?from-date=2021-01-01&page = 1"
+          payload = {"api-key":"70254526-e859-472f-bbdc-e820dc781b6e", "show-fields":"all"}
+          response = requests.get(url, params = payload)
+          return response.json()
+
+     a4 = Theguardian_api()
+     for x in range(1,10):
+          fourth_var = a4['response']['results'][x]
+          title = fourth_var['webTitle']
+          source = fourth_var['fields']['publication']
+          PublishedDate = fourth_var['fields']['firstPublicationDate']
+          unique_id = fourth_var['webUrl']
+    
+          sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
+          val = (source, title, PublishedDate, unique_id)
+          data = mycursor.execute(sql,val)
+          return data
+          #print(title, source, PublishedDate, unique_id)    
+          #print('-------------theguardian done!-----------' + '\n')
+
+     def news_api_content(): 
+          newsapi = NewsApiClient(api_key = "c15034b58ee244fc843bb4906e71e8bd")
+          top_headlines = newsapi.get_top_headlines(language = 'en',sources = 'cnn', page = 1)
+          return top_headlines
+
+     a5 = news_api_content()
+     for x in range(1,10):
+          fifth_var = a5['articles'][x]
+          title = fifth_var['title']
+          source = fifth_var['source']['name']
+          PublishedDate = fifth_var['publishedAt']
+          unique_id = fifth_var['url']
+
+          sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
+          val = (source, title, PublishedDate, unique_id)
+          data = mycursor.execute(sql,val)
+          return data
+          #print('------------------------------news api done!------------------' + '\n')
+
+     query = 'select * from test1 where PublishedDate = 2025-04-24'
+     mycursor.execute(query)
+     return render_template('display.html', data = data)
+
+
+
 def api_details():
      filter_type = None
      filter_value = None
@@ -58,17 +174,14 @@ def api_details():
      return render_template('display.html', data=data, selected_filter=filter_type,filter_value=filter_value)
 
 
+
+
 if __name__ == "__main__":
     app.run(host = '0.0.0.0', debug = True, port = 5000)
 
-
-## one thing to remember to add filter options like
-## 1. by 1 day
-## 2. by that date
-## or something like that. 
-# so at last pls maintain option for that.
-# render_template('display.html', data = data)
-
+mydb.commit()
+mycursor.close()
+mydb.close()
 
 #note: try to implement 2 functions like fetch() and display()
 # fetch fetches the data from data like the one you did.
