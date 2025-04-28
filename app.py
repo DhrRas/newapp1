@@ -166,6 +166,21 @@ def home():
           return render_template('display.html', data = [], message = 'No data available.')
 
 
+def filter():
+     def by_keyword():
+          query = 'select * from test1'
+          pass
+
+     def by_date():
+          pass
+
+     def by_timestamp():
+          pass
+
+     def by_source(): # if necessary. not needed.
+          pass
+
+
 if __name__ == "__main__":
     app.run(host = '0.0.0.0', debug = True, port = 5000)
 
@@ -178,3 +193,4 @@ mydb.close()
 # 2. by date
 # 3. by timestamp
 # 4. by source if required.
+# 5. create a dropdwon button like that and display all 
