@@ -11,6 +11,7 @@
             padding: 5px;
         }
     </style>
+
 <form action="/details" method="POST">
     <button type="submit" name="fetch_data">Fetch Data</button>
 </form>
@@ -18,6 +19,41 @@
 <form action="/details" method="POST">
     <button type="submit" name="display_data">Display All</button>
 </form>
+
+<form action="/details" method="POST" id="filter-form">
+    <select name="filter_type" id="filter-select" onchange="updatePlaceholder()">
+        <option value="">-- Select Filter Type --</option>
+        <option value="keywords">Keyword</option>
+        <option value="source">Source</option>
+        <option value="date">Date</option>
+    </select>
+
+    <input type="text" name="filter_input" id="filter-input" placeholder="Enter value... " style="display:none;" />
+    <button type="submit" name="filter_data">Filter</button>
+</form>
+
+<script>
+    function updatePlaceholder() {
+        const select = document.getElementById('filter-select');
+        const input = document.getElementById('filter-input');
+        const value = select.value;
+
+    if(value) {
+        input.style.display = 'inline';
+        if(valu === 'keywords') {
+            input.placeholder = 'Search by keyword, e.g., cricket, economy...';
+        } else if (value === 'source') {
+            input.placeholder = 'Search by source, e.g., CNBC, TheGuardian...';
+        } else if(value === 'date') {
+            input.placeholder = 'Search by date or year, e.g., 2024 or 2024-03...';
+        }
+    
+    } else {
+        input.style.display = 'none';
+    }
+}
+</script>
+
 
 {% if message %}
     <p style="color:red;">{{ message }}</p>

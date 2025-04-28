@@ -6,6 +6,7 @@ from newsapi import NewsApiClient
 
 app = Flask(__name__, template_folder='templates')
 
+
 mydb = mysql.connector.connect(
         host = 'localhost',
         user = 'root',
@@ -147,14 +148,39 @@ def home():
                          message = 'some records already exist. Showing latest fetched records.'
                          
                     
-
-
                mydb.commit()
 
      elif request.method == 'POST' and 'display_data' in request.form:
           mycursor.execute('select * from test1 ')
           inserted_data = mycursor.fetchall()
-          
+
+     elif request.method =='POST' and 'filter_data' in request.form:
+          filter_type = request.form.get('filter_type')
+          filter_input = request.form.get('filter_input')
+
+          if filter_type and filter_input:
+               if filter_type == 'source':
+                    query = 'select * from test1 where source = %s'
+                    mycursor.execute(query, (filter_input,))
+               elif filter_type == 'date':
+                    query = 'select * from test1 where PublishedDate LIKE %s'
+                    mycursor.execute(query, (f'%{filter_input}%',))
+               elif filter_type == 'keywords':
+                    query = '''
+                         select * from test1 
+                         where title LIKE %s
+                         OR source LIKE %s 
+                         OR PublishedDate LIKE %s
+                         OR unique_id LIKE %s  
+                         '''
+                    keyword = f'%{filter_input}%'
+                    mycursor.execute(query, (keyword, keyword, keyword, keyword))
+               
+               inserted_data = mycursor.fetchall()
+               if not inserted_data:
+                    message = f"No results found for '{filter_input}'. Try another keyword."
+               else:
+                    message = f"Showing results for '{filter_input}'" 
 
      if latest_records:
           return render_template('display.html', data = latest_records, message = message)
@@ -165,20 +191,6 @@ def home():
      else:
           return render_template('display.html', data = [], message = 'No data available.')
 
-
-def filter():
-     def by_keyword():
-          query = 'select * from test1'
-          pass
-
-     def by_date():
-          pass
-
-     def by_timestamp():
-          pass
-
-     def by_source(): # if necessary. not needed.
-          pass
 
 
 if __name__ == "__main__":
