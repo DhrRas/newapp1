@@ -162,9 +162,11 @@ def home():
                if filter_type == 'source':
                     query = 'select * from test1 where source = %s'
                     mycursor.execute(query, (filter_input,))
+               
                elif filter_type == 'date':
                     query = 'select * from test1 where PublishedDate LIKE %s'
                     mycursor.execute(query, (f'%{filter_input}%',))
+               
                elif filter_type == 'keywords':
                     query = '''
                          select * from test1 
