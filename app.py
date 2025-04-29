@@ -244,9 +244,10 @@ def home():
      else:
           return render_template('display.html', data = [], message = 'No data available.')
 
-mycursor.close()
-mydb.close()
 
 
 if __name__ == "__main__":
     app.run(host = '0.0.0.0', debug = True, port = 5000)
+
+mycursor.close()
+mydb.close()
