@@ -251,3 +251,12 @@ if __name__ == "__main__":
 
 mycursor.close()
 mydb.close()
+
+
+# note to change one. thing
+# just show normal filter option 
+# if user wants to search it with another options  then he click on add filter option where again shows filter option and then by using those selected options 
+# it should display the results based on that.
+
+
+# Optional:  it's upto you that if you need to add a hover effect that user hover over url then it should actually see the url 
