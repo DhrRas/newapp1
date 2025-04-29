@@ -2,7 +2,7 @@ from flask import Flask, render_template, request
 import mysql.connector
 import requests
 from newsapi import NewsApiClient
-import atexit
+
 
 
 app = Flask(__name__, template_folder='templates')
@@ -17,8 +17,12 @@ mydb = mysql.connector.connect(
 mycursor = mydb.cursor()
 
 def unique_id_exist(unique_id):   # it is used to test so no duplication is there
-     mycursor.execute('select 1 from test1 WHERE unique_id = %s LIMIT 1', (unique_id,))
-     return mycursor.fetchone() is not None
+     try:
+          mycursor.execute('select 1 from test1 WHERE unique_id = %s LIMIT 1', (unique_id,))
+          return mycursor.fetchone() is not None
+     except mysql.connector.Error as err:
+          print(f'Error checking unique ID existence: {err}')
+          return False
 
 @app.route('/details', methods=['GET','POST'])
 
@@ -29,7 +33,7 @@ def home():
 
 
      if request.method == 'POST' and 'fetch_data' in request.form:
-          #if count == 0:
+          try:
                def nyt_api():
                     requestUrl = "https://api.nytimes.com/svc/news/v3/content/all/'business'.json?limit=20&api-key=NIYJ7DwbZDKjtgBI4xKGUPGim572tRKi"
                     response = requests.get(requestUrl)
@@ -46,8 +50,11 @@ def home():
                     if not unique_id_exist(unique_id):
                          sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
                          val = (source, title, PublishedDate, unique_id)
-                         mycursor.execute(sql,val)
-                         latest_records.append((source, title, PublishedDate, unique_id))
+                         try:
+                              mycursor.execute(sql,val)
+                              latest_records.append((source, title, PublishedDate, unique_id))
+                         except mysql.connector.Error as err:
+                              print(f'Error inserting record into database: {err}')
                     else:
                          message = 'some records already exist. Showing latest fetched records.'
                          
@@ -71,8 +78,11 @@ def home():
                     if not unique_id_exist(unique_id):
                          sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
                          val = (source, title, PublishedDate, unique_id)
-                         mycursor.execute(sql,val)
-                         latest_records.append((source, title, PublishedDate, unique_id))
+                         try:
+                              mycursor.execute(sql,val)
+                              latest_records.append((source, title, PublishedDate, unique_id))
+                         except mysql.connector.Error as err:
+                              print(f'Error inserting record into database: {err}')
                     else:
                          message = 'some records already exist. Showing latest fetched records.'
                          
@@ -96,8 +106,11 @@ def home():
                     if not unique_id_exist(unique_id):
                          sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
                          val = (source, title, PublishedDate, unique_id)
-                         mycursor.execute(sql,val)
-                         latest_records.append((source, title, PublishedDate, unique_id))
+                         try:
+                              mycursor.execute(sql,val)
+                              latest_records.append((source, title, PublishedDate, unique_id))
+                         except mysql.connector.Error as err:
+                              print(f'Error inserting record into database: {err}')
                     else:
                          message = 'some records already exist. Showing latest fetched records.'
                          
@@ -120,8 +133,11 @@ def home():
                     if not unique_id_exist(unique_id):
                          sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
                          val = (source, title, PublishedDate, unique_id)
-                         mycursor.execute(sql,val)
-                         latest_records.append((source, title, PublishedDate, unique_id))
+                         try:
+                              mycursor.execute(sql,val)
+                              latest_records.append((source, title, PublishedDate, unique_id))
+                         except mysql.connector.Error as err:
+                              print(f'Error inserting record into database: {err}')
                     else:
                          message = 'some records already exist. Showing latest fetched records.'
                          
@@ -143,32 +159,45 @@ def home():
                     if not unique_id_exist(unique_id):
                          sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
                          val = (source, title, PublishedDate, unique_id)
-                         mycursor.execute(sql,val)
-                         latest_records.append((source, title, PublishedDate, unique_id))
+                         try:
+                              mycursor.execute(sql,val)
+                              latest_records.append((source, title, PublishedDate, unique_id))
+                         except mysql.connector.Error as err:
+                              print(f'Error inserting records from database: {err}')
                     else:
                          message = 'some records already exist. Showing latest fetched records.'
                          
                     
                mydb.commit()
 
+          except requests.exceptions.RequestException as e:
+               message = f'API Request Error: {e}'
+          except mysql.connector.Error as err:
+               message = f'Database Error: {err}'
+
      elif request.method == 'POST' and 'display_data' in request.form:
-          mycursor.execute('select * from test1 ')
-          inserted_data = mycursor.fetchall()
+          try:
+               mycursor.execute('select * from test1 ')
+               inserted_data = mycursor.fetchall()
+          except mysql.connector.Error as err:
+               print(f'Error fetching Data: {err}')
 
      elif request.method =='POST' and 'filter_data' in request.form:
           filter_type = request.form.get('filter_type')
           filter_input = request.form.get('filter_input')
 
           if filter_type and filter_input:
-               if filter_type == 'source':
-                    mycursor.execute('select * from test1 where source = %s', (filter_input,))
+               try:
+                    if filter_type == 'source':
+                         mycursor.execute('select * from test1 where source = %s', (filter_input,))
                
-               elif filter_type == 'date':
-                    mycursor.execute('select * from test1 where PublishedDate LIKE %s', (f'%{filter_input}%',))
+
+                    elif filter_type == 'date':
+                         mycursor.execute('select * from test1 where PublishedDate LIKE %s', (f'%{filter_input}%',))
                
-               elif filter_type == 'keywords':
-                    keyword = f'%{filter_input}%'
-                    mycursor.execute('''
+                    elif filter_type == 'keywords':
+                         keyword = f'%{filter_input}%'
+                         mycursor.execute('''
                          select * from test1 
                          where title LIKE %s
                          OR source LIKE %s 
@@ -176,8 +205,10 @@ def home():
                          OR unique_id LIKE %s  
                          ''', (keyword, keyword, keyword, keyword))
                
-               inserted_data = mycursor.fetchall()
-               message = f"No results found for '{filter_input}'." if not inserted_data else f"Showing results for '{filter_input}'."
+                    inserted_data = mycursor.fetchall()
+                    message = f"No results found for '{filter_input}'." if not inserted_data else f"Showing results for '{filter_input}'."
+               except mysql.connector.Error as err:
+                    message = f'Database Error: {err}'
 
      elif request.method == 'POST' and 'filter_combined' in request.form:
                     filter_combo = request.form.get('filter_combo')
@@ -185,17 +216,20 @@ def home():
                     val2 = request.form.get('value2')
 
                     if filter_combo and val1 and val2:
-                         if filter_combo == 'keyword_source':
-                              mycursor.execute('Select * from test1 where title LIKE %s AND source LIKE %s', (f'%{val1}%', f'%{val2}%'))
+                         try:
+                              if filter_combo == 'keyword_source':
+                                   mycursor.execute('Select * from test1 where title LIKE %s AND source LIKE %s', (f'%{val1}%', f'%{val2}%'))
 
-                         elif filter_combo == 'source_date':
-                              mycursor.execute('select * from test1 where source LIKE %s AND PublishedDate LIKE %s', (f'%{val1}%', f'%{val2}%'))
+                              elif filter_combo == 'source_date':
+                                   mycursor.execute('select * from test1 where source LIKE %s AND PublishedDate LIKE %s', (f'%{val1}%', f'%{val2}%'))
 
-                         elif filter_combo == 'date_keyword':
-                              mycursor.execute('select * from test1 where PublishedDate LIKE %s AND title LIKE %s', (f'%{val1}%', f'%{val2}%'))
+                              elif filter_combo == 'date_keyword':
+                                   mycursor.execute('select * from test1 where PublishedDate LIKE %s AND title LIKE %s', (f'%{val1}%', f'%{val2}%'))
 
-                         inserted_data = mycursor.fetchall()
-                         message = f"Showing results for combined Filter '{filter_combo}'" if inserted_data else 'No results found for combined filter.'    
+                              inserted_data = mycursor.fetchall()
+                              message = f"Showing results for combined Filter '{filter_combo}'" if inserted_data else 'No results found for combined filter.'    
+                         except mysql.connector.Error as err:
+                              message = f'Database Error: {err}'
 
                     else:
                          inserted_data = []
@@ -210,13 +244,9 @@ def home():
      else:
           return render_template('display.html', data = [], message = 'No data available.')
 
+mycursor.close()
+mydb.close()
 
 
 if __name__ == "__main__":
     app.run(host = '0.0.0.0', debug = True, port = 5000)
-
-@atexit.register
-def close_connection():
-     mycursor.close()
-     mydb.close()
- 
