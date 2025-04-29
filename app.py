@@ -160,56 +160,43 @@ def home():
 
           if filter_type and filter_input:
                if filter_type == 'source':
-                    query = 'select * from test1 where source = %s'
-                    mycursor.execute(query, (filter_input,))
+                    mycursor.execute('select * from test1 where source = %s', (filter_input,))
                
                elif filter_type == 'date':
-                    query = 'select * from test1 where PublishedDate LIKE %s'
-                    mycursor.execute(query, (f'%{filter_input}%',))
+                    mycursor.execute('select * from test1 where PublishedDate LIKE %s', (f'%{filter_input}%',))
                
                elif filter_type == 'keywords':
-                    query = '''
+                    keyword = f'%{filter_input}%'
+                    mycursor.execute('''
                          select * from test1 
                          where title LIKE %s
                          OR source LIKE %s 
                          OR PublishedDate LIKE %s
                          OR unique_id LIKE %s  
-                         '''
-                    keyword = f'%{filter_input}%'
-                    mycursor.execute(query, (keyword, keyword, keyword, keyword))
+                         ''', (keyword, keyword, keyword, keyword))
                
                inserted_data = mycursor.fetchall()
 
-               if not inserted_data:
-                    message = f"No results found for '{filter_input}'. Try another keyword."
-               else:
-                    message = f"Showing results for '{filter_input}'" 
+               message = f"Results for '{filter_input}'" if inserted_data else f"No results for '{filter_input}'."
 
 
           elif request.method =='POST' and 'filter_combined' in request.form:
-               keyword = request.form.get('filter_keyword')
-               source = request.form.get('fitler_source')
-               date = request.form.get('filter_date')
-               query = 'select * from test1 where 1=1'
-               params = []
+               filter_combo = request.form.get('filter_combo')
+               val1 = request.form.get('value1')
+               val2 = request.form.get('value2')
+               inserted_data = []
+          
+               if filter_combo == 'keyword_source': 
+                    mycursor.execute('''Select * from test1 where title LIKE %s AND source LIKE %s''', (f'%{val1}%', f'%{val2}%'))
+          
+               elif filter_combo == 'source_date':
+                    mycursor.execute('''Select * from test1 where source LIKE %s AND PublishedDate LIKE %s ''',(f'%{val1}%', f'%{val2}%'))
 
-               if keyword: 
-                    query += 'And (title LIKE %s OR unique_id LIKE %s)'
-                    keyword_param = f'%{keyword}%'
-                    params += [keyword_param, keyword_param]
-               
-               if source:
-                    query += 'And source LIKE %s'
-                    params.append(f'%{source}%')
+               elif filter_combo == 'date_keyword':
+                    mycursor.execute('''Select * from test1 where PublishedDate LIKE %s AND title LIKE %s''', (f'%{val1}%', f'%{val2}%'))
 
-               if date:
-                    query += 'AND PublishedDate LIKE %s'
-                    params.append(f'%{date}%')
-
-
-               mycursor.execute(query, tuple(params))
                inserted_data = mycursor.fetchall()
-               message = 'Results for combined filter. ' if inserted_data else "No results for combined filter."
+               message = 'Results for combined filter. ' if inserted_data else 'No results found for combined filter.s'
 
      if latest_records:
           return render_template('display.html', data = latest_records, message = message)
@@ -227,11 +214,4 @@ if __name__ == "__main__":
 
 mycursor.close()
 mydb.close()
-
-
-# then lastly add a filter options 
-# 1. by keywords => it should fetches some data according to that. and same should apply for all filter options.
-# 2. by date
-# 3. by timestamp
-# 4. by source if required.
-# 5. create a dropdwon button like that and display all 
+ 

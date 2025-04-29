@@ -1,31 +1,30 @@
 {% extends 'base.html' %}
-{% block title %} API Data {% endblock %}
+{% block title %}API Data{% endblock %}
 
 {% block content %}
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-    <div class="container=fluid">
-        <a class="navbar-brand" href="#">News Dashboard</a>
-    </div>
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">News Dashboard</a>
+  </div>
 </nav>
 
 <div class="container">
-    <h1 class="mb-4 text-primary">API News Data</h1>
 
     <div class="mb-3">
         <form action="/details" method="POST" class="d-inline">
             <button type="submit" name="fetch_data" class="btn btn-success">Fetch Data</button>
         </form>
-
         <form action="/details" method="POST" class="d-inline">
             <button type="submit" name="display_data" class="btn btn-info">Display All</button>
         </form>
     </div>
 
-    <form action="/details" method="POST" id="filter-form" class="mb-4 row g-3">
+    <!-- Single Filter -->
+    <form action="/details" method="POST" class="row g-3 mb-4">
         <div class="col-md-3">
-            <select class="form-select" name="filter_type" id="filter-select" onchange="updatePlaceholder()">
+            <select name="filter_type" class="form-select" onchange="updatePlaceholder()" id="filter-select">
                 <option value="">-- Filter Type --</option>
                 <option value="keywords">Keyword</option>
                 <option value="source">Source</option>
@@ -35,15 +34,28 @@
         <div class="col-md-5">
             <input type="text" name="filter_input" id="filter-input" class="form-control" placeholder="Enter value..." style="display:none;" />
         </div>
-        
-        <div class="col-md-3">
-            <input type="text" name="filter_source" class="form-control" placeholder="Source">
+        <div class="col-md-2">
+            <button type="submit" name="filter_data" class="btn btn-warning">Filter</button>
         </div>
+    </form>
 
+    <!-- Combined Filter -->
+    <form action="/details" method="POST" class="row g-3 mb-4">
+        <input type="hidden" name="filter_combined" value="1">
         <div class="col-md-3">
-            <input type="submit" name="filter_data" class="form control" placeholder="Date (e.g., 2024-03)">
+            <select name="filter_combo" class="form-select" id="combined-filter" onchange="updateCombined()">
+                <option value="">-- Add Filter --</option>
+                <option value="keyword_source">Keyword + Source</option>
+                <option value="source_date">Source + Date</option>
+                <option value="date_keyword">Date + Keyword</option>
+            </select>
         </div>
-
+        <div class="col-md-3">
+            <input type="text" name="value1" id="val1" class="form-control" placeholder="First value" style="display:none;" />
+        </div>
+        <div class="col-md-3">
+            <input type="text" name="value2" id="val2" class="form-control" placeholder="Second value" style="display:none;" />
+        </div>
         <div class="col-md-2">
             <button type="submit" name="filter_combined" class="btn btn-secondary">Add Filter</button>
         </div>
@@ -62,7 +74,7 @@
     </h3>
 
     {% if data %}
-    <table class="table table=striped table-bordered text-center">
+    <table class="table table-bordered table-striped text-center">
         <thead class="table-dark">
             <tr>
                 <th>Source</th>
@@ -71,41 +83,51 @@
                 <th>URL</th>
             </tr>
         </thead>
-        <tbdoy>
-            {% fo row in data %}
+        <tbody>
+            {% for row in data %}
             <tr>
                 <td>{{ row[0] }}</td>
                 <td>{{ row[1] }}</td>
-                <td>{{row[2] }}</td>
+                <td>{{ row[2] }}</td>
                 <td><a href="{{ row[3] }}" target="_blank">Read More</a></td>
             </tr>
-        </tbdoy>
+            {% endfor %}
+        </tbody>
     </table>
-
     {% else %}
-        <p>No data available yet. Click 'Fetch Data' to get the latest news. </p>
+    <p>No data available. Please fetch first.</p>
     {% endif %}
 </div>
 
 <script>
-    function updatePlaceholder() {
-        const select = document.getElementById('filter-select');
-        const input = document.getElementById('filter-input')
-        const value = select.value;
+function updatePlaceholder() {
+    const select = document.getElementById('filter-select');
+    const input = document.getElementById('filter-input');
+    input.style.display = select.value ? 'inline' : 'none';
+}
 
-        if(value) {
-            input.style.display = 'inline';
-            if(value === 'keywords') {
-                input.placeholder = 'e.g., cricket, economy...';
-            } else if(value === 'source') {
-                input.placeholder = 'e.g., CNBC, CNN...';
-            } else if (value === 'date') {
-                input.placeholder = 'e.g., 2024 or 2024-03...';
-            }
-        } else {
-            input.style.display = 'none';
+function updateCombined() {
+    const combo = document.getElementById('combined-filter').value;
+    const val1 = document.getElementById('val1');
+    const val2 = document.getElementById('val2');
+    if (combo) {
+        val1.style.display = 'inline';
+        val2.style.display = 'inline';
+
+        if (combo === 'keyword_source') {
+            val1.placeholder = "Enter Keyword";
+            val2.placeholder = "Enter Source";
+        } else if (combo === 'source_date') {
+            val1.placeholder = "Enter Source";
+            val2.placeholder = "Enter Date";
+        } else if (combo === 'date_keyword') {
+            val1.placeholder = "Enter Date";
+            val2.placeholder = "Enter Keyword";
         }
+    } else {
+        val1.style.display = 'none';
+        val2.style.display = 'none';
     }
+}
 </script>
-
 {% endblock %}
