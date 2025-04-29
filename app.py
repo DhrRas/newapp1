@@ -175,34 +175,34 @@ def home():
                          OR unique_id LIKE %s  
                          ''', (keyword, keyword, keyword, keyword))
                
-               inserted_data = mycursor.fetchall()
+               
+               elif request.method == 'POST' and 'filter_combined' in request.form:
+                    filter_combo = request.form.get('filter_combo')
+                    val1 = request.form.get('value1')
+                    val2 = request.form.get('value2')
 
-               message = f"Results for '{filter_input}'" if inserted_data else f"No results for '{filter_input}'."
+                    if filter_combo and val1 and val2:
+                         if filter_combo == 'keyword_source':
+                              mycursor.execute('Select * from test1 where title LIKE %s AND source LIKE %s', (f'%{val1}%', f'%{val2}%'))
 
+                         elif filter_combo == 'source_date':
+                              mycursor.execute('select * from test1 where source LIKE %s AND PublishedDate LIKE %s', (f'%{val1}%', f'%{val2}%'))
 
-          elif request.method =='POST' and 'filter_combined' in request.form:
-               filter_combo = request.form.get('filter_combo')
-               val1 = request.form.get('value1')
-               val2 = request.form.get('value2')
-               inserted_data = []
-          
-               if filter_combo == 'keyword_source': 
-                    mycursor.execute('''Select * from test1 where title LIKE %s AND source LIKE %s''', (f'%{val1}%', f'%{val2}%'))
-          
-               elif filter_combo == 'source_date':
-                    mycursor.execute('''Select * from test1 where source LIKE %s AND PublishedDate LIKE %s ''',(f'%{val1}%', f'%{val2}%'))
+                         elif filter_combo == 'date_keyword':
+                              mycursor.execute('select * from test1 where PublishedDate LIKE %s AND title LIKE %s', (f'%{val1}%', f'%{val2}%'))
 
-               elif filter_combo == 'date_keyword':
-                    mycursor.execute('''Select * from test1 where PublishedDate LIKE %s AND title LIKE %s''', (f'%{val1}%', f'%{val2}%'))
+                         inserted_data = mycursor.fetchall()
+                         message = f"Showing results for combined Filter '{filter_combo}'" if inserted_data else 'No results found for combined filter.'    
 
-               inserted_data = mycursor.fetchall()
-               message = 'Results for combined filter. ' if inserted_data else 'No results found for combined filter.s'
+                    else:
+                         inserted_data = []
+                         message = "Please fill both fields in the combined filter."
 
      if latest_records:
           return render_template('display.html', data = latest_records, message = message)
      
      elif inserted_data:
-          return render_template('display.html', data = inserted_data, message = None)
+          return render_template('display.html', data = inserted_data, message = message)
      
      else:
           return render_template('display.html', data = [], message = 'No data available.')
