@@ -177,10 +177,37 @@ def home():
                     mycursor.execute(query, (keyword, keyword, keyword, keyword))
                
                inserted_data = mycursor.fetchall()
+
                if not inserted_data:
                     message = f"No results found for '{filter_input}'. Try another keyword."
                else:
                     message = f"Showing results for '{filter_input}'" 
+
+
+          elif request.method =='POST' and 'filter_combined' in request.form:
+               keyword = request.form.get('filter_keyword')
+               source = request.form.get('fitler_source')
+               date = request.form.get('filter_date')
+               query = 'select * from test1 where 1=1'
+               params = []
+
+               if keyword: 
+                    query += 'And (title LIKE %s OR unique_id LIKE %s)'
+                    keyword_param = f'%{keyword}%'
+                    params += [keyword_param, keyword_param]
+               
+               if source:
+                    query += 'And source LIKE %s'
+                    params.append(f'%{source}%')
+
+               if date:
+                    query += 'AND PublishedDate LIKE %s'
+                    params.append(f'%{date}%')
+
+
+               mycursor.execute(query, tuple(params))
+               inserted_data = mycursor.fetchall()
+               message = 'Results for combined filter. ' if inserted_data else "No results for combined filter."
 
      if latest_records:
           return render_template('display.html', data = latest_records, message = message)
