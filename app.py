@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 import mysql.connector
 import requests
 from newsapi import NewsApiClient
+import atexit
 
 
 app = Flask(__name__, template_folder='templates')
@@ -175,8 +176,10 @@ def home():
                          OR unique_id LIKE %s  
                          ''', (keyword, keyword, keyword, keyword))
                
-               
-               elif request.method == 'POST' and 'filter_combined' in request.form:
+               inserted_data = mycursor.fetchall()
+               message = f"No results found for '{filter_input}'." if not inserted_data else f"Showing results for '{filter_input}'."
+
+     elif request.method == 'POST' and 'filter_combined' in request.form:
                     filter_combo = request.form.get('filter_combo')
                     val1 = request.form.get('value1')
                     val2 = request.form.get('value2')
@@ -212,6 +215,8 @@ def home():
 if __name__ == "__main__":
     app.run(host = '0.0.0.0', debug = True, port = 5000)
 
-mycursor.close()
-mydb.close()
+@atexit.register
+def close_connection():
+     mycursor.close()
+     mydb.close()
  
