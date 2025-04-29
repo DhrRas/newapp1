@@ -2,95 +2,110 @@
 {% block title %} API Data {% endblock %}
 
 {% block content %}
-<h1> Api List </h1>
-    <style>
-        td {
-            width: auto;
-            text-align: center;
-            border: 1px solid black;
-            padding: 5px;
-        }
-    </style>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<form action="/details" method="POST">
-    <button type="submit" name="fetch_data">Fetch Data</button>
-</form>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <div class="container=fluid">
+        <a class="navbar-brand" href="#">News Dashboard</a>
+    </div>
+</nav>
 
-<form action="/details" method="POST">
-    <button type="submit" name="display_data">Display All</button>
-</form>
+<div class="container">
+    <h1 class="mb-4 text-primary">API News Data</h1>
 
-<form action="/details" method="POST" id="filter-form">
-    <select name="filter_type" id="filter-select" onchange="updatePlaceholder()">
-        <option value="">-- Select Filter Type --</option>
-        <option value="keywords">Keyword</option>
-        <option value="source">Source</option>
-        <option value="date">Date</option>
-    </select>
+    <div class="mb-3">
+        <form action="/details" method="POST" class="d-inline">
+            <button type="submit" name="fetch_data" class="btn btn-success">Fetch Data</button>
+        </form>
 
-    <input type="text" name="filter_input" id="filter-input" placeholder="Enter value... " style="display:none;" />
-    <button type="submit" name="filter_data">Filter</button>
-</form>
+        <form action="/details" method="POST" class="d-inline">
+            <button type="submit" name="display_data" class="btn btn-info">Display All</button>
+        </form>
+    </div>
+
+    <form action="/details" method="POST" id="filter-form" class="mb-4 row g-3">
+        <div class="col-md-3">
+            <select class="form-select" name="filter_type" id="filter-select" onchange="updatePlaceholder()">
+                <option value="">-- Filter Type --</option>
+                <option value="keywords">Keyword</option>
+                <option value="source">Source</option>
+                <option value="date">Date</option>
+            </select>
+        </div>
+        <div class="col-md-5">
+            <input type="text" name="filter_input" id="filter-input" class="form-control" placeholder="Enter value..." style="display:none;" />
+        </div>
+        
+        <div class="col-md-3">
+            <input type="text" name="filter_source" class="form-control" placeholder="Source">
+        </div>
+
+        <div class="col-md-3">
+            <input type="submit" name="filter_data" class="form control" placeholder="Date (e.g., 2024-03)">
+        </div>
+
+        <div class="col-md-2">
+            <button type="submit" name="filter_combined" class="btn btn-secondary">Add Filter</button>
+        </div>
+    </form>
+
+    {% if message %}
+        <p class="text-danger">{{ message }}</p>
+    {% endif %}
+
+    <h3 class="mb-3 text-info">
+        {% if data and data|length < 20 %}
+            Showing Latest Fetched News
+        {% else %}
+            Showing All News from Database
+        {% endif %}
+    </h3>
+
+    {% if data %}
+    <table class="table table=striped table-bordered text-center">
+        <thead class="table-dark">
+            <tr>
+                <th>Source</th>
+                <th>Title</th>
+                <th>Published Date</th>
+                <th>URL</th>
+            </tr>
+        </thead>
+        <tbdoy>
+            {% fo row in data %}
+            <tr>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{row[2] }}</td>
+                <td><a href="{{ row[3] }}" target="_blank">Read More</a></td>
+            </tr>
+        </tbdoy>
+    </table>
+
+    {% else %}
+        <p>No data available yet. Click 'Fetch Data' to get the latest news. </p>
+    {% endif %}
+</div>
 
 <script>
     function updatePlaceholder() {
         const select = document.getElementById('filter-select');
-        const input = document.getElementById('filter-input');
+        const input = document.getElementById('filter-input')
         const value = select.value;
 
-    if(value) {
-        input.style.display = 'inline';
-        if(valu === 'keywords') {
-            input.placeholder = 'Search by keyword, e.g., cricket, economy...';
-        } else if (value === 'source') {
-            input.placeholder = 'Search by source, e.g., CNBC, TheGuardian...';
-        } else if(value === 'date') {
-            input.placeholder = 'Search by date or year, e.g., 2024 or 2024-03...';
+        if(value) {
+            input.style.display = 'inline';
+            if(value === 'keywords') {
+                input.placeholder = 'e.g., cricket, economy...';
+            } else if(value === 'source') {
+                input.placeholder = 'e.g., CNBC, CNN...';
+            } else if (value === 'date') {
+                input.placeholder = 'e.g., 2024 or 2024-03...';
+            }
+        } else {
+            input.style.display = 'none';
         }
-    
-    } else {
-        input.style.display = 'none';
     }
-}
 </script>
 
-
-{% if message %}
-    <p style="color:red;">{{ message }}</p>
-{% endif %}
-
-<h2>
-    {% if data and data|length < 20 %}
-        Showing Latest Fetched News
-    {% else %}
-        Showing All News from Database
-    {% endif %}
-</h2>
-
-<br/><br/>
-{% if data %}
-    <table>
-        <thead>
-            <tr>
-                <th>Source</th>
-                <th>title</th>
-                <th>PublishedDate</th>
-                <th>unique_id</th>
-            </tr>
-            </thead>
-        <tbody>
-            {% for row in data %}
-            <tr>
-                <td>{{ row[0] }}</td>
-                <td>{{ row[1] }}</td>
-                <td> {{ row[2] }} </td>
-                <td><a href ="{{row[3]}}" target="_blank">{{row[3]}}</a></td> 
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-        <p>No data available yet. Click 'Fetch Data' to fetch the latest news. </p>
-    {% endif %}
-    
 {% endblock %}
