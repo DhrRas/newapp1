@@ -37,25 +37,26 @@
         </div>
     </form>
 
-    <form action="/details" method="POST" class="row g-3 mb-4">
-        <input type="hidden" name="filter_combined" value="1">
+    <div class="mb-3">
+        <button type="button" class="btn btn-secondary" id="add-filter-btn" onclick="showSecondFilter()">Add Filter</button>
+    </div>
+
+    <form action="/details" method="POST" id="second-filter-form" class="row g-3 mb-4" style="display:none;">
         <div class="col-md-3">
-            <select name="filter_combo" class="form-select" id="combined-filter" onchange="updateCombined()">
-                <option value="">-- Add Filter --</option>
-                <option value="keyword_source">Keyword + Source</option>
-                <option value="source_date">Source + Date</option>
-                <option value="date_keyword">Date + Keyword</option>
+            <select name="second_filter_type" class="form-select"  onchange="updateSecondFilterPlaceholder()" id="second-filter-select">
+                <option value="">-- Filter Type --</option>
+                <option value="keyword_source">Keyword </option>
+                <option value="source_date">Source</option>
+                <option value="date_keyword">Date</option>
             </select>
         </div>
-        <div class="col-md-3">
-            <input type="text" name="value1" id="val1" class="form-control" placeholder="First value" style="display:none;" />
-        </div>
-        <div class="col-md-3">
-            <input type="text" name="value2" id="val2" class="form-control" placeholder="Second value" style="display:none;" />
+        <div class="col-md-5">
+            <input type="text" name="second_filter_input" id="second-filter-input" class="form-control" placeholder="First value" style="display:none;" />
         </div>
         <div class="col-md-2">
-            <button type="submit" name="filter_combined" class="btn btn-secondary">Add Filter</button>
+            <button type="submit" name="apply_filters" class="btn btn-primary">Apply Filters </button>
         </div>
+    
     </form>
 
     {% if message %}
@@ -103,28 +104,17 @@ function updatePlaceholder() {
     input.style.display = select.value ? 'inline' : 'none';
 }
 
-function updateCombined() {
-    const combo = document.getElementById('combined-filter').value;
-    const val1 = document.getElementById('val1');
-    const val2 = document.getElementById('val2');
-    if (combo) {
-        val1.style.display = 'inline';
-        val2.style.display = 'inline';
+function updateSecondFilterPlaceholder() {
+    const select = document.getElementById('second-filter-select');
+    const input = document.getElementById('second-filter-input');
+    input.style.display = select.value ? 'inline': 'none';
+}
 
-        if (combo === 'keyword_source') {
-            val1.placeholder = "Enter Keyword";
-            val2.placeholder = "Enter Source";
-        } else if (combo === 'source_date') {
-            val1.placeholder = "Enter Source";
-            val2.placeholder = "Enter Date";
-        } else if (combo === 'date_keyword') {
-            val1.placeholder = "Enter Date";
-            val2.placeholder = "Enter Keyword";
-        }
-    } else {
-        val1.style.display = 'none';
-        val2.style.display = 'none';
-    }
+function showSecondFilter() {
+    const secondFilterForm = document.getElementById('second-filter-form');
+    secondFilterForm.style.display = 'block';
+    const addButton = document.getElementById('add-filter-btn');
+    addButton.style.display = 'none';
 }
 </script>
 {% endblock %}

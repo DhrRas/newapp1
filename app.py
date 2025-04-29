@@ -211,23 +211,21 @@ def home():
                     message = f'Database Error: {err}'
 
      elif request.method == 'POST' and 'filter_combined' in request.form:
-                    filter_combo = request.form.get('filter_combo')
-                    val1 = request.form.get('value1')
-                    val2 = request.form.get('value2')
+                    filter_type = request.form.get('filter_type')
+                    filter_input = request.form.get('filter_input')
+                    second_filter_type = request.form.get('second_filter_type')
+                    second_filter_input = request.form.get('second-filter_input')
 
-                    if filter_combo and val1 and val2:
+                    if filter_type  and filter_input and second_filter_type and second_filter_input:
                          try:
-                              if filter_combo == 'keyword_source':
-                                   mycursor.execute('Select * from test1 where title LIKE %s AND source LIKE %s', (f'%{val1}%', f'%{val2}%'))
+                              if filter_type == 'source' and second_filter_type == 'date':
+                                   mycursor.execute('Select * from test1 where source LIKE %s AND PublishedDate LIKE %s', (f'%{filter_input}%', f'%{second_filter_input}%'))
 
-                              elif filter_combo == 'source_date':
-                                   mycursor.execute('select * from test1 where source LIKE %s AND PublishedDate LIKE %s', (f'%{val1}%', f'%{val2}%'))
-
-                              elif filter_combo == 'date_keyword':
-                                   mycursor.execute('select * from test1 where PublishedDate LIKE %s AND title LIKE %s', (f'%{val1}%', f'%{val2}%'))
+                              elif filter_type == 'keywords' and second_filter_type == 'source': 
+                                   mycursor.execute('select * from test1 where title LIKE %s AND  LIKE %s', (f'%{filter_input}%', f'%{second_filter_input}%'))
 
                               inserted_data = mycursor.fetchall()
-                              message = f"Showing results for combined Filter '{filter_combo}'" if inserted_data else 'No results found for combined filter.'    
+                              message = f"Showing results for combined Filter '{filter_input}'and '{second_filter_input}'" if inserted_data else 'No results found for combined filter.'    
                          except mysql.connector.Error as err:
                               message = f'Database Error: {err}'
 
