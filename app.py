@@ -40,23 +40,26 @@ def home():
                     return response.json()
 
                a1 = nyt_api()
-               for x in range(2,6):
-                    first_var = a1['results'][x]
-                    title = first_var['title']
-                    source = first_var['source']
-                    PublishedDate = first_var['published_date']
-                    unique_id = first_var['url']
+               try:
+                    for x in range(2,6):
+                         first_var = a1['results'][x]
+                         title = first_var['title']
+                         source = first_var['source']
+                         PublishedDate = first_var['published_date']
+                         unique_id = first_var['url']
 
-                    if not unique_id_exist(unique_id):
-                         sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
-                         val = (source, title, PublishedDate, unique_id)
-                         try:
-                              mycursor.execute(sql,val)
-                              latest_records.append((source, title, PublishedDate, unique_id))
-                         except mysql.connector.Error as err:
-                              print(f'Error inserting record into database: {err}')
-                    else:
-                         message = 'some records already exist. Showing latest fetched records.'
+                         if not unique_id_exist(unique_id):
+                              sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
+                              val = (source, title, PublishedDate, unique_id)
+                              try:
+                                   mycursor.execute(sql,val)
+                                   latest_records.append((source, title, PublishedDate, unique_id))
+                              except mysql.connector.Error as err:
+                                   print(f'Error inserting record into database: {err}')
+                         else:
+                              message = 'some records already exist. Showing latest fetched records.'
+               except(TypeError, KeyError) as e:
+                    print(f'Error processing The Guardian data: {e}')
                          
                     
 
@@ -68,23 +71,27 @@ def home():
                     return response.json()
 
                a2 = yahoo_api()
-               for x in range(1,20):
-                    second_var = a2['body'][x]
-                    title = second_var['title']
-                    source = second_var['source']
-                    PublishedDate = second_var['time']
-                    unique_id = second_var['url']
+               try:
+                    for x in range(1,20):
+                         second_var = a2['body'][x]
+                         title = second_var['title']
+                         source = second_var['source']
+                         PublishedDate = second_var['time']
+                         unique_id = second_var['url']
 
-                    if not unique_id_exist(unique_id):
-                         sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
-                         val = (source, title, PublishedDate, unique_id)
-                         try:
-                              mycursor.execute(sql,val)
-                              latest_records.append((source, title, PublishedDate, unique_id))
-                         except mysql.connector.Error as err:
-                              print(f'Error inserting record into database: {err}')
-                    else:
-                         message = 'some records already exist. Showing latest fetched records.'
+                         if not unique_id_exist(unique_id):
+                              sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
+                              val = (source, title, PublishedDate, unique_id)
+                              try:
+                                   mycursor.execute(sql,val)
+                                   latest_records.append((source, title, PublishedDate, unique_id))
+                              except mysql.connector.Error as err:
+                                   print(f'Error inserting record into database: {err}')
+                         else:
+                              message = 'some records already exist. Showing latest fetched records.'
+               except(TypeError, KeyError) as e:
+                    print(f'Error processing The Guardian data: {e}')
+                    
                          
                     
 
@@ -97,22 +104,25 @@ def home():
 
                a3 = cnbc_api()
                for x in range(1,20):
-                    third_var = a3['data']['mostPopularEntries']['assets'][x]
-                    title = third_var['headline']
-                    source = 'CNBC'
-                    PublishedDate = third_var['shortDateFirstPublished']
-                    unique_id = third_var['id']
+                    try:
+                         third_var = a3['data']['mostPopularEntries']['assets'][x]
+                         title = third_var['headline']
+                         source = 'CNBC'
+                         PublishedDate = third_var['shortDateFirstPublished']
+                         unique_id = third_var['id']
 
-                    if not unique_id_exist(unique_id):
-                         sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
-                         val = (source, title, PublishedDate, unique_id)
-                         try:
-                              mycursor.execute(sql,val)
-                              latest_records.append((source, title, PublishedDate, unique_id))
-                         except mysql.connector.Error as err:
-                              print(f'Error inserting record into database: {err}')
-                    else:
-                         message = 'some records already exist. Showing latest fetched records.'
+                         if not unique_id_exist(unique_id):
+                              sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
+                              val = (source, title, PublishedDate, unique_id)
+                              try:
+                                   mycursor.execute(sql,val)
+                                   latest_records.append((source, title, PublishedDate, unique_id))
+                              except mysql.connector.Error as err:
+                                   print(f'Error inserting record into database: {err}')
+                         else:
+                              message = 'some records already exist. Showing latest fetched records.'
+                    except(TypeError, KeyError) as e:
+                         print(f'Error processing The Guardian data: {e}')
                          
                     
 
@@ -123,49 +133,55 @@ def home():
                     return response.json()
 
                a4 = Theguardian_api()
-               for x in range(1,10):
-                    fourth_var = a4['response']['results'][x]
-                    title = fourth_var['webTitle']
-                    source = fourth_var['fields']['publication']
-                    PublishedDate = fourth_var['fields']['firstPublicationDate']
-                    unique_id = fourth_var['webUrl']
+               try:
+                    for x in range(1,10):
+                         fourth_var = a4['response']['results'][x]
+                         title = fourth_var['webTitle']
+                         source = fourth_var['fields']['publication']
+                         PublishedDate = fourth_var['fields']['firstPublicationDate']
+                         unique_id = fourth_var['webUrl']
     
-                    if not unique_id_exist(unique_id):
-                         sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
-                         val = (source, title, PublishedDate, unique_id)
-                         try:
-                              mycursor.execute(sql,val)
-                              latest_records.append((source, title, PublishedDate, unique_id))
-                         except mysql.connector.Error as err:
-                              print(f'Error inserting record into database: {err}')
-                    else:
-                         message = 'some records already exist. Showing latest fetched records.'
+                         if not unique_id_exist(unique_id):
+                              sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
+                              val = (source, title, PublishedDate, unique_id)
+                              try:
+                                   mycursor.execute(sql,val)
+                                   latest_records.append((source, title, PublishedDate, unique_id))
+                              except mysql.connector.Error as err:
+                                   print(f'Error inserting record into database: {err}')
+                         else:
+                              message = 'some records already exist. Showing latest fetched records.'
+               except(TypeError, KeyError) as e:
+                    print(f'Error processing The Guardian data: {e}')
                          
                     
 
-               def news_api_content(): 
+               def news_api_content():
                     newsapi = NewsApiClient(api_key = "c15034b58ee244fc843bb4906e71e8bd")
                     top_headlines = newsapi.get_top_headlines(language = 'en',sources = 'cnn', page = 1)
                     return top_headlines
 
                a5 = news_api_content()
-               for x in range(1,10):
-                    fifth_var = a5['articles'][x]
-                    title = fifth_var['title']
-                    source = fifth_var['source']['name']
-                    PublishedDate = fifth_var['publishedAt']
-                    unique_id = fifth_var['url']
+               try:
+                    for x in range(1,10):
+                         fifth_var = a5['articles'][x]
+                         title = fifth_var['title']
+                         source = fifth_var['source']['name']
+                         PublishedDate = fifth_var['publishedAt']
+                         unique_id = fifth_var['url']
 
-                    if not unique_id_exist(unique_id):
-                         sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
-                         val = (source, title, PublishedDate, unique_id)
-                         try:
-                              mycursor.execute(sql,val)
-                              latest_records.append((source, title, PublishedDate, unique_id))
-                         except mysql.connector.Error as err:
-                              print(f'Error inserting records from database: {err}')
-                    else:
-                         message = 'some records already exist. Showing latest fetched records.'
+                         if not unique_id_exist(unique_id):
+                              sql = "INSERT INTO test1(source, title, PublishedDate, unique_id) VALUES (%s, %s, %s, %s)"
+                              val = (source, title, PublishedDate, unique_id)
+                              try:
+                                   mycursor.execute(sql,val)
+                                   latest_records.append((source, title, PublishedDate, unique_id))
+                              except mysql.connector.Error as err:
+                                   print(f'Error inserting records from database: {err}')
+                         else:
+                              message = 'some records already exist. Showing latest fetched records.'
+               except (TypeError, KeyError) as e:
+                    print(f'Error processing NewsAPI data: {e}')
                          
                     
                mydb.commit()
@@ -177,7 +193,7 @@ def home():
 
      elif request.method == 'POST' and 'display_data' in request.form:
           try:
-               mycursor.execute('select * from test1 ')
+               mycursor.execute('select * from test1')
                inserted_data = mycursor.fetchall()
           except mysql.connector.Error as err:
                print(f'Error fetching Data: {err}')
@@ -255,7 +271,7 @@ def home():
                                    message =f'Database Error: {err}'
                     else:
                          inserted_data = []
-                         message = "Please select valid filters before applying. "
+                         message = "Please select at least one filter before applying."
 
      if latest_records:
           return render_template('display.html', data = latest_records, message = message)

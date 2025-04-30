@@ -15,12 +15,13 @@
         <form action="/details" method="POST" class="d-inline">
             <button type="submit" name="fetch_data" class="btn btn-success">Fetch Data</button>
         </form>
-        <form action="/details" method="POST" class="d-inline">
+
+        <form action="/details" method="POST" class="d-inline ms-2">
             <button type="submit" name="display_data" class="btn btn-info">Display All</button>
         </form>
     </div>
 
-    <form action="/details" method="POST" class="row g-3 mb-4">
+    <form action="/details" method="POST" class="row g-3 align-items-center">
         <div class="col-md-3">
             <select name="filter_type" class="form-select" onchange="updatePlaceholder()" id="filter-select">
                 <option value="">-- Filter Type --</option>
@@ -29,21 +30,22 @@
                 <option value="date">Date</option>
             </select>
         </div>
+
         <div class="col-md-5">
             <input type="text" name="filter_input" id="filter-input" class="form-control" placeholder="Enter value..." style="display:none;" />
         </div>
         <div class="col-md-2">
-            <button type="submit" name="filter_data" class="btn btn-warning">Filter</button>
+            <button type="submit" name="filter_data" class="btn btn-warning" id="filter-button" >Filter</button>
         </div>
     </form>
 
     <div class="mb-3">
-        <button type="button" class="btn btn-secondary" id="add-filter-btn" onclick="showSecondFilter()">Add Filter</button>
+        <button class="btn btn-secondary" id="add-filter-btn" onclick="toggleSecondFilter()">Add Filter</button>
     </div>
 
-    <form action="/details" method="POST" id="second-filter-form" class="row g-3 mb-4" style="display:none;">
-        <div class="col-md-3">
-            <select name="second_filter_type" class="form-select"  onchange="updateSecondFilterPlaceholder()" id="second-filter-select">
+    <form action="/details" method="POST" id="second-filter-form" class="row g-3 mb-4 align-items-center" style="display:none;">
+        <div class="col-md-3 offset-md-3">
+            <select name="second_filter_type" class="form-select"  onchange="updatePlaceholder('second-filter-select', 'second-filter-input', 'apply-filter-btn')" id="second-filter-select">
                 <option value="">-- Filter Type --</option>
                 <option value="keywords">Keyword </option>
                 <option value="source">Source</option>
@@ -51,10 +53,10 @@
             </select>
         </div>
         <div class="col-md-5">
-            <input type="text" name="second_filter_input" id="second-filter-input" class="form-control" placeholder="Enter value..." style="display:none;" />
+            <input type="text" name="second_filter_input" id="second-filter-input" class="form-control" placeholder="Enter value..." style="display:none;" oninput="validateSecondFilter()" />
         </div>
         <div class="col-md-2">
-            <button type="submit" name="apply_filters" class="btn btn-primary" disabled>Apply Filters</button>
+            <button type="submit" name="apply_filters" class="btn btn-primary" id="apply-filter-btn" style="display:none;">Apply Filters</button>
         </div>
     
     </form>
@@ -98,102 +100,84 @@
 </div>
 
 <script>
-function updatePlaceholder() {
-    const select = document.getElementById('filter-select');
-    const input = document.getElementById('filter-input');
+function updatePlaceholder(selectId, inputId, buttonId) {
+    const select = document.getElementById(selectId);
+    const input = document.getElementById(inputId);
+
     input.style.display = select.value ? 'inline' : 'none';
-
+    input.placeholder = select.value ? 'Enter' + select.options[select.selectedIndex].text + '...' : '';
     if (select.value) {
-        input.style.display = 'inline';
-        input.placeholder = "Enter " + select.options[select.selectedIndex].text + "...";
-        input.focus()
-    } else {
-        input.style.display = 'none';
-        input.placeholder = "";
-    }
-}
-
-function updateSecondFilterPlaceholder() {
-    const select = document.getElementById('second-filter-select');
-    const input = document.getElementById('second-filter-input');
-    input.style.display = select.value ? 'inline': 'none';
-
-    if(select.value) {
-        input.style.display = 'inline';
-        input.placeholder = "Enter " + select.options[select.selectedIndex].text + '...';
         input.focus();
-    } else {
-        input.style.display = 'none';
-        input.placeholder = "";
     }
-}
-
-function showSecondFilter() {
-    const secondFilterForm = document.getElementById('second-filter-form');
-    secondFilterForm.style.display = 'block';
-    const addButton = document.getElementById('add-filter-btn');
-    addButton.style.display = 'none';
-    validateSecondFilterInputs();
+    if (buttonId === 'filter-button') {
+        validateFilter(selectId, inputId, buttonId);
+    }else if (buttonId === 'apply-filter-btn') {
+        validateFirstFilter();
+    }
 
 }
 
+function validateFilter(selectId, inputId, buttonId) {
+    const select = document.getElementById(selectId);
+    const input = document.getElementById(inputId);
+    const button = document.getElementById(buttonId);
+    button.disabled = !(select.value && input.value.trim());
+}
 
+// toggle the visibility of the second filter form.
+function toggleSecondFilter() {
+    const secondFilterFom = document.getElementById('second-filter-form');
+    const applyFilterButton = document.getElementById('apply-filter-btn');
+    secondFilterFom.style.display = 'flex';
+    applyFilterButton.style.display = 'inline-block';
+}
 
-
-function validateSecondFilterInputs () {
+function validateSecondFilter() {
     const type1 = document.getElementById('filter-select').value;
     const input1 = document.getElementById('filter-input').value.trim();
     const type2 = document.getElementById('second-filter-select').value;
     const input2 = document.getElementById('second-filter-input').value.trim();
-    const applyBtn = document.querySelector('button[name="apply_filters"]');
+    const applyBtn = document.getElementById('apply-filter-btn');
+    
+    applyBtn.disabled = !(type1 && input1 && type2 && input2);
+}
+// handle enabling / disabling filter button based on first filter input.
+document.getElementById('filter-select').addEventListener('change', () => updatePlaceholder('filter-select', 'filter-input', 'filter-button'));
+document.getElementById('filter-input').addEventListener('input', () => validateFilter('filter-select', 'filter-input', 'filter-button'));
+document.getElementById('second-filter-select').addEventListener('change', () => updatePlaceholder('second-filter-select','second-filter-input','apply-filter-btn'));
+document.getElementById('second-filter-input').addEventListener('input', validateSecondFilter);
 
-    const isSecondFilterVisible = document.getElementById('second-filter-form').style.display === 'block';
-
-    if(isSecondFilterVisible) {
-        if ((type1 && input1) && (type2 && input2)) {
-            applyBtn.disabled = false;
-        } else {
-            applyBtn.disabled = true;
-        }
-    }   
-        else {
-        
-        if (type1 && input1) {
-        applyBtn.disabled = false;
-    } 
-        else {
-        applyBtn.disabled = true;
+document.addEventListener('DOMContentLoaded', () => {
+    const filterButton = document.getElementById('filter-button');
+    if (filterButton) {
+        filterButton.disabled = true;
     }
-}    
+    const applyFilterButton = document.getElementById('apply-filter-btn');
+    if(applyFilterButton) {
+        applyFilterButton.style.display = 'none';
+        applyFilterButton.disabled = true;
     }
-
-document.getElementById('filter-select').addEventListener('change',  function() {
-    const type1 = document.getElementById('filter-select').value;
-    const input1 = document.getElementById('filter-input').value.trim();
-    const filterBtn = document.querySelector('button[name="filter_data"]');
-    filterBtn.disabled = !(type1 && input1);
 });
-document.getElementById('filter-input').addEventListener('input', function() {
-    const type1 = document.getElementById('filter-select').value;
-    const input1 = document.getElementById('filter-input').value.trim();
-    const filterBtn = document.querySelector('button[name="filter_data"]');
-    filterBtn.disabled = !(type1 && input1);
-});
-document.getElementById('second-filter-select').addEventListener('change', validateSecondFilterInputs);
-document.getElementById('second-filter-input').addEventListener('input', validateSecondFilterInputs);
 
+
+//reset filters
 function resetFilterInputs() {
     document.getElementById('filter-select').value = '';
     document.getElementById('filter-input').value = '';
     document.getElementById('second-filter-select').value = '';
     document.getElementById('second-filter-input').value = '';
-    document.querySelector('button[name="apply_filters"]').disabled = true;
+    const filterButton = document.getElementById('filter-button');
+    if (filterButton) {
+        filterButton.disabled = true;
+    }
+    const applyFilterButton = document.getElementById('apply-filter-btn');
+    if (applyFilterButton) {
+        applyFilterButton.style.display = 'none';
+        applyFilterButton.disabled = true;
+    }
+    const secondFilterFom = document.getElementById('second-filter-form');
+    secondFilterFom.style.display = 'none';
 }
-
-document.querySelector('form#second-filter-form').addEventListener('submit', function() {
-    resetFilterInputs();
-});
-
 
 </script>
 {% endblock %}
