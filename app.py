@@ -210,28 +210,52 @@ def home():
                except mysql.connector.Error as err:
                     message = f'Database Error: {err}'
 
-     elif request.method == 'POST' and 'filter_combined' in request.form:
-                    filter_type = request.form.get('filter_type')
-                    filter_input = request.form.get('filter_input')
-                    second_filter_type = request.form.get('second_filter_type')
-                    second_filter_input = request.form.get('second-filter_input')
+     elif request.method == 'POST' and 'apply_filters' in request.form:
+                    filter_type1 = request.form.get('filter_type')
+                    filter_input1 = request.form.get('filter_input')
+                    filter_type2 = request.form.get('second_filter_type')
+                    filter_input2 = request.form.get('second_filter_input')
 
-                    if filter_type  and filter_input and second_filter_type and second_filter_input:
-                         try:
-                              if filter_type == 'source' and second_filter_type == 'date':
-                                   mycursor.execute('Select * from test1 where source LIKE %s AND PublishedDate LIKE %s', (f'%{filter_input}%', f'%{second_filter_input}%'))
+                    filters = []
+                    params = []
 
-                              elif filter_type == 'keywords' and second_filter_type == 'source': 
-                                   mycursor.execute('select * from test1 where title LIKE %s AND  LIKE %s', (f'%{filter_input}%', f'%{second_filter_input}%'))
+                    if filter_type1 and filter_input1:
+                              if filter_type1 == 'source':
+                                   filters.append('source LIKE %s')
+                                   params.append(f'%{filter_input1}%')
 
-                              inserted_data = mycursor.fetchall()
-                              message = f"Showing results for combined Filter '{filter_input}'and '{second_filter_input}'" if inserted_data else 'No results found for combined filter.'    
-                         except mysql.connector.Error as err:
-                              message = f'Database Error: {err}'
+                              elif filter_type == 'date':
+                                   filters.append('PublishedDate LIKE %s')
+                                   params.append(f'%{filter_input1}%')
 
+                              elif filter_type1 == 'keywords':
+                                   filters.append('(title LIKE %s OR source LIKE %s OR PublishedDate LIKE %s OR unique_id LIKE %s)')
+                                   params.extend([f'%{filter_input1}%'] * 4)
+                              
+                    if filter_type2 and filter_input2:
+                         if filter_type2 == 'source':
+                              filters.append('source LIKE %s')
+                              params.append(f'%{filter_input2}%')
+                         
+                         elif filter_type2 == 'date':
+                              filters.append('PublishedDate LIKE %s')
+                              params.append(f'%{filter_input2}%')
+                         
+                         elif filter_type2 == 'keywords':
+                              filters.append('(title LIKE %s OR source LIKE %s OR PublishedDate LIKE %s OR unique_id LIKE %s)')
+                              params.extend([f'%{filter_input2}%'] * 4)
+
+                    if filters:
+                              query = "select * from test1 where " + " AND".join(filters)
+                              try:
+                                   mycursor.execute(query, tuple(params))
+                                   inserted_data = mycursor.fetchall()
+                                   message = 'Showing results for combined filters.' if inserted_data else 'No results found for combined filters.'
+                              except mysql.connector.Error as err:
+                                   message =f'Database Error: {err}'
                     else:
                          inserted_data = []
-                         message = "Please fill both fields in the combined filter."
+                         message = "Please select valid filters before applying. "
 
      if latest_records:
           return render_template('display.html', data = latest_records, message = message)
