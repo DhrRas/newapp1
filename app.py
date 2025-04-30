@@ -240,7 +240,7 @@ def home():
                                    filters.append('source LIKE %s')
                                    params.append(f'%{filter_input1}%')
 
-                              elif filter_type == 'date':
+                              elif filter_type1 == 'date':
                                    filters.append('PublishedDate LIKE %s')
                                    params.append(f'%{filter_input1}%')
 
@@ -266,7 +266,7 @@ def home():
                               try:
                                    mycursor.execute(query, tuple(params))
                                    inserted_data = mycursor.fetchall()
-                                   message = 'Showing results for combined filters.' if inserted_data else 'No results found for combined filters.'
+                                   message = f'Showing results for {filter_type1} and {filter_type2}'
                               except mysql.connector.Error as err:
                                    message =f'Database Error: {err}'
                     else:
