@@ -59,7 +59,7 @@
 
 
 {% if message %}
-    <div class="alert alert-danger mb-3" role="alert" style="margin-top: 15px;">
+    <div class="alert {% if 'No results' in message %}alert-danger{% else %}alert-success bg-light-green text-dark{% endif %} mb-3" role="alert" style="margin-top: 15px;">
         {{ message }}
     </div>
 {% endif %}
@@ -96,20 +96,28 @@
         </tr>
     </thead>
     <tbody>
-        {% for row in data %}
-        <tr>
-            <td>{{ row[0] }}</td>
-            <td>{{ row[1] }}</td>
-            <td>{{ row[2] }}</td>
-            <td><a href="{{ row[3] }}" title='{{row[3]}}' target="_blank">Read More</a></td>
-        </tr>
-        {% endfor %}
+        {% if data|length > 0 %}
+            {% for row in data %}
+            <tr {% if filter_keyword and filter_keyword.lower() in row[1].lower() %} class="success-highlight"{% endif %}>
+                <td>{{ row[0] }}</td>
+                <td>{{ row[1] }}</td>
+                <td>{{ row[2] }}</td>
+                <td><a href="{{ row[3] }}" title='{{row[3]}}' target="_blank">Read More</a></td>
+            </tr>
+            {% endfor %}
+        {% else %}
+            <tr><td colspan="4" class="error-highlight">No data availabe. Please fetch first</td></tr>
+        {% endif %}
+
     </tbody>
 </table>
 {% else %}
-<p>No data available. Please fetch first.</p>
+<div class="alert alert-warning">No data availabe. Please fetch first.</div>
 {% endif %}
 
+{% if filter_keyword and not data %}
+<div class="alert alert-danger">No news articles found matching the keyword '{{ filter_keyword }}</div>
+{% endif %}
 <script>
 
 function validateApplyFilterButton() {

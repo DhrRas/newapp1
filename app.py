@@ -36,6 +36,10 @@ def home():
     latest_records = []
     mydb = None
     mycursor = None
+    filter1_results = None
+    filter2_results = None
+    filter1_message = None
+    filter2_message = None
 
     try:
         mydb = get_db_connection()
@@ -70,8 +74,8 @@ def home():
 
                     def yahoo_api():
                         url = "https://yahoo-finance15.p.rapidapi.com/api/v2/markets/news"
-                        querystring = {"tickets": "AAPL", "type": "ALL"}
-                        headers = {"x-rapidapi-key": os.environ.get('65d7cf85b0msh88f548ccee39fe9p121f4ejsnafcc4d564117'), "x-rapidapi-host": "yahoo-finance15.p.rapidapi.com"}
+                        querystring = {"tickers":"AAPL","type":"ALL"}
+                        headers = { "x-rapidapi-key": "65d7cf85b0msh88f548ccee39fe9p121f4ejsnafcc4d564117", "x-rapidapi-host": "yahoo-finance15.p.rapidapi.com"  }
                         response = requests.get(url, headers=headers, params=querystring)
                         response.raise_for_status()
                         return response.json()
@@ -96,9 +100,9 @@ def home():
 
                     def cnbc_api():
                         url = "https://cnbc.p.rapidapi.com/news/v2/list-trending"
-                        query = {"tag": "Articles", "count": "30"}
-                        headers = {"x-rapidapi-key": os.environ.get('65d7cf85b0msh88f548ccee39fe9p121f4ejsnafcc4d564117'), "x-rapidapi-host": "cnbc.p.rapidapi.com"}
-                        response = requests.get(url, headers=headers, params=query)
+                        query = {"tag":"Articles","count":"30"}
+                        headers = {"x-rapidapi-key":"65d7cf85b0msh88f548ccee39fe9p121f4ejsnafcc4d564117","x-rapidapi-host":"cnbc.p.rapidapi.com"}
+                        response = requests.get(url, headers = headers , params= query)
                         response.raise_for_status()
                         return response.json()
 
@@ -122,8 +126,8 @@ def home():
 
                     def Theguardian_api():
                         url = "http://content.guardianapis.com/world?from-date=2021-01-01&page=1"
-                        payload = {"api-key": os.environ.get('70254526-e859-472f-bbdc-e820dc781b6e'), "show-fields": "all"}
-                        response = requests.get(url, params=payload)
+                        payload = {"api-key":"70254526-e859-472f-bbdc-e820dc781b6e", "show-fields":"all"}
+                        response = requests.get(url, params = payload)
                         response.raise_for_status()
                         return response.json()
 
@@ -146,8 +150,8 @@ def home():
                             print(f'Error processing The Guardian data: {e}')
 
                     def news_api_content():
-                        newsapi = NewsApiClient(api_key=os.environ.get('c15034b58ee244fc843bb4906e71e8bd'))
-                        top_headlines = newsapi.get_top_headlines(language='en', sources='cnn', page=1)
+                        newsapi = NewsApiClient(api_key = "c15034b58ee244fc843bb4906e71e8bd")
+                        top_headlines = newsapi.get_top_headlines(language='en', sources = 'cnn', page = 1)
                         return top_headlines
 
                     a5 = news_api_content()
@@ -167,13 +171,27 @@ def home():
                                 message = 'Some records already exist. Showing latest fetched records.'
                         except (TypeError, KeyError, IndexError) as e:
                             print(f'Error processing NewsAPI data: {e}')
+                    
 
                     mydb.commit()
+
+                    if message == 'Some records already exist. Showing latest fetched records.':
+                # Fetch the latest records from the database
+                        mycursor.execute("SELECT source, title, PublishedDate, unique_id FROM test1 ORDER BY PublishedDate DESC LIMIT 20")
+                        latest_records = mycursor.fetchall()
+                        inserted_data = latest_records # Assign the latest records to inserted_data
+                    elif not message: # If new records were fetched and inserted
+                        mycursor.execute("SELECT source, title, PublishedDate, unique_id FROM test1 ORDER BY PublishedDate DESC LIMIT 20")
+                        inserted_data = mycursor.fetchall()
+                    else:
+                        inserted_data = [] 
 
                 except requests.exceptions.RequestException as e:
                     message = f'API Request Error: {e}'
                 except mysql.connector.Error as err:
                     message = f'Database Error during fetch: {err}'
+
+                return render_template('display.html', data=inserted_data, message= message)
 
             elif request.method == 'POST' and 'display_data' in request.form:
                 try:
@@ -185,8 +203,10 @@ def home():
             elif request.method == 'POST' and 'filter_data' in request.form:
                 filter_type = request.form.get('filter_type')
                 filter_input = request.form.get('filter_input')
+                filter_keyword = None  # Initialize filter_keyword here
 
                 if filter_type and filter_input:
+                    filter_keyword = filter_input # Assign only if it has a value
                     try:
                         query = 'SELECT * FROM test1 WHERE '
                         if filter_type == 'source':
@@ -209,10 +229,17 @@ def home():
                             message = f"No results found for '{filter_input}'." if not inserted_data else f"Showing results for '{filter_input}'."
                     except mysql.connector.Error as err:
                         message = f'Database Error during filter: {err}'
+                else:
+                    inserted_data = []
+                    message = "Please select a filter type and enter a value."
 
-                return render_template('display.html', data=inserted_data, message = message,
-                                       filter1_status=None, filter2_status=None,
-                                       filter1_message=None, filter2_message=None)
+                filter1_results = None
+                filter2_results = None
+
+                return render_template('display.html', data=inserted_data, message=message,
+                               filter1_status=None, filter2_status=None,
+                               filter1_message=None, filter2_message=None,
+                               filter_keyword=filter_keyword) # Use the initialized filter_keyword
 
             elif request.method == 'POST' and 'apply_filters' in request.form:
                 filter_type1 = request.form.get('filter_type')
@@ -307,13 +334,6 @@ def home():
     return render_template('display.html', data=inserted_data, message=message,
                            filter1_status=filter1_results, filter2_status=filter2_results,
                            filter1_message=filter1_message, filter2_message=filter2_message)
-    
-   # if latest_records:
-    #    return render_template('display.html', data=latest_records, message=message)
-   # elif inserted_data:
-    #    return render_template('display.html', data=inserted_data, message=message)
-   # else:
-    #    return render_template('display.html', data=[], message='No data available.')
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', debug=True, port=5000)
