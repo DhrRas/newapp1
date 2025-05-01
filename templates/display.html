@@ -1,55 +1,22 @@
 {% extends 'base.html' %}
-{% block title %}API Data{% endblock %}
+{% block title %}News Details{% endblock %}
 
 {% block content %}
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">News Dashboard</a>
-  </div>
-</nav>
+<div class="mb-3">
+    <form action="/details" method="POST" class="d-inline">
+        <button type="submit" name="fetch_data" class="btn btn-success">Fetch Data</button>
+    </form>
 
-<div class="container">
+    <form action="/details" method="POST" class="d-inline ms-2">
+        <button type="submit" name="display_data" class="btn btn-info">Display All</button>
+    </form>
+</div>
 
-    <div class="mb-3">
-        <form action="/details" method="POST" class="d-inline">
-            <button type="submit" name="fetch_data" class="btn btn-success">Fetch Data</button>
-        </form>
-
-        <form action="/details" method="POST" class="d-inline ms-2">
-            <button type="submit" name="display_data" class="btn btn-info">Display All</button>
-        </form>
-    </div>
-
-    <div class="mb-3">
-        <form action="/details" method="POST" class="row g-3 align-items-center filter-controls">
-            <div class="col-md-3">
-                <select name="filter_type" class="form-select" onchange="updatePlaceholder()" id="filter-select">
-                    <option value="">-- Filter Type --</option>
-                    <option value="keywords">Keyword</option>
-                    <option value="source">Source</option>
-                    <option value="date">Date</option>
-                </select>
-            </div>
-
-            <div class="col-md-5">
-                <input type="text" name="filter_input" id="filter-input" class="form-control" placeholder="Enter value..." style="display:none;" />
-            </div>
-
-
-            <div class="col-md-2">
-                <button type="submit" name="filter_data" class="btn btn-warning" id="filter-button" >Filter</button>
-            </div>
-        </form>
-    </div>
-
-    <div class="mb-3">
-        <button class="btn btn-secondary" id="add-filter-btn" style="margin-top: 10px" onclick="toggleSecondFilter()">Add Filter</button>
-    </div>
-
-    <form action="/details" method="POST" class="row g-3 align-items-center" style="display:none;" id="second-filter-form">
+<div class="mb-3">
+    <form action="/details" method="POST" class="row g-3 align-items-center filter-controls">
         <div class="col-md-3">
-            <select name="second_filter_type" class="form-select" onchange="updatePlaceholder('second-filter-select', 'second-filter-input','apply-filter-btn')" id="second-filter-select">
+            <select name="filter_type" class="form-select" onchange="updatePlaceholder()" id="filter-select">
                 <option value="">-- Filter Type --</option>
                 <option value="keywords">Keyword</option>
                 <option value="source">Source</option>
@@ -58,53 +25,90 @@
         </div>
 
         <div class="col-md-5">
-            <input type="text" name="second_filter_input" id="second-filter-input" class="form-control" placeholder="Enter value..." style="display:none;" oninput="validateSecondFilter()" />
+            <input type="text" name="filter_input" id="filter-input" class="form-control" placeholder="Enter value..." style="display:none;" />
         </div>
+
+
         <div class="col-md-2">
-            <button type="submit" name="apply_filters" class="btn btn-warning" id="apply-filter-btn" >Apply Filter</button>
+            <button type="submit" name="filter_data" class="btn btn-warning" id="filter-button" >Filter</button>
         </div>
     </form>
-    
-    
-    {% if message %}
-        <div class="alert alert-danger mb-3" role="alert" style="margin-top: 15px;">
-            {{ message }}
-        </div>
-    {% endif %}
-
-    <h3 class="mb-3 text-info" style="margin-top: 20px;">
-        {% if data and data|length < 20 %}
-            Showing Latest Fetched News
-        {% else %}
-            Showing All News from Database
-        {% endif %}
-    </h3>
-
-    {% if data %}
-    <table class="table table-bordered table-striped text-center" style="margin-bottom: 20px" >
-        <thead class="table-dark">
-            <tr>
-                <th>Source</th>
-                <th>Title</th>
-                <th>Published Date</th>
-                <th>URL</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in data %}
-            <tr>
-                <td>{{ row[0] }}</td>
-                <td>{{ row[1] }}</td>
-                <td>{{ row[2] }}</td>
-                <td><a href="{{ row[3] }}" title='{{row[3]}}' target="_blank">Read More</a></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>No data available. Please fetch first.</p>
-    {% endif %}
 </div>
+
+<div class="mb-3">
+    <button class="btn btn-secondary" id="add-filter-btn" style="margin-top: 10px" onclick="toggleSecondFilter()">Add Filter</button>
+</div>
+
+<form action="/details" method="POST" class="row g-3 align-items-center" style="display:none;" id="second-filter-form">
+    <div class="col-md-3">
+        <select name="second_filter_type" class="form-select" onchange="updatePlaceholder('second-filter-select', 'second-filter-input','apply-filter-btn')" id="second-filter-select">
+            <option value="">-- Filter Type --</option>
+            <option value="keywords">Keyword</option>
+            <option value="source">Source</option>
+            <option value="date">Date</option>
+        </select>
+    </div>
+
+    <div class="col-md-5">
+        <input type="text" name="second_filter_input" id="second-filter-input" class="form-control" placeholder="Enter value..." style="display:none;" oninput="validateSecondFilter()" />
+    </div>
+    <div class="col-md-2">
+        <button type="submit" name="apply_filters" class="btn btn-warning" id="apply-filter-btn" >Apply Filter</button>
+    </div>
+</form>
+
+
+{% if message %}
+    <div class="alert alert-danger mb-3" role="alert" style="margin-top: 15px;">
+        {{ message }}
+    </div>
+{% endif %}
+
+{% if filter1_message %}
+    <div class="alert alert-info mb-3" role="alert">
+        {{ filter1_message }}
+    </div>
+{% endif %}
+
+{% if filter2_message %}
+    <div class="alert alert-info mb-3" role="alert">
+        {{ filter2_message }}
+    </div>
+{% endif %}
+
+
+<h3 class="mb-3 text-info" style="margin-top: 20px;">
+    {% if data and data|length < 20 %}
+        Showing Latest Fetched News
+    {% else %}
+        Showing All News from Database
+    {% endif %}
+</h3>
+
+{% if data %}
+<table class="table table-bordered table-striped text-center" style="margin-bottom: 20px" >
+    <thead class="table-dark">
+        <tr>
+            <th>Source</th>
+            <th>Title</th>
+            <th>Published Date</th>
+            <th>URL</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in data %}
+        <tr>
+            <td>{{ row[0] }}</td>
+            <td>{{ row[1] }}</td>
+            <td>{{ row[2] }}</td>
+            <td><a href="{{ row[3] }}" title='{{row[3]}}' target="_blank">Read More</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No data available. Please fetch first.</p>
+{% endif %}
 
 <script>
 
@@ -152,13 +156,13 @@ function validateFilter(selectId, inputId, buttonId) {
 // toggle the visibility of the second filter form.
 function toggleSecondFilter() {
     const secondFilterForm = document.getElementById('second-filter-form');
-    const secondFilterInput = document.getElementById('second-filter-input');    
+    const secondFilterInput = document.getElementById('second-filter-input');
     const applyFilterButton = document.getElementById('apply-filter-btn');
-    
+
     secondFilterForm.style.display = 'flex';
     secondFilterInput.style.display = secondFilterForm.querySelector('select').value ? 'inline': 'none';
     applyFilterButton.style.display = secondFilterForm.querySelector('select').value && secondFilterInput.value.trim() ? 'inline-block' : 'none';
-    
+
 }
 
 function validateSecondFilter() {
@@ -167,7 +171,7 @@ function validateSecondFilter() {
     const applyBtn = document.getElementById('apply-filter-btn');
 
     const isSecondFilterValid = type2Select.value && input2.value.trim();
-    
+
     applyBtn.style.display = isSecondFilterValid ? 'inline-block' : 'none';
     validateApplyFilterButton();
 }
