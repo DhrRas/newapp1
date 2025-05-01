@@ -2,21 +2,30 @@ from flask import Flask, render_template, request
 import mysql.connector
 import requests
 from newsapi import NewsApiClient
+import os
 
 
 
 app = Flask(__name__, template_folder='templates')
 
 
-mydb = mysql.connector.connect(
-        host = 'localhost',
-        user = 'root',
-        password = '1234',
-        database = 'mysql'
+def get_db_connection():
+     """Establishes and returns a MySQL database connection. """
+     try:
+          mydb = mysql.connector.connect(
+               host = os.environ.get('DB_HOST','localhost'),
+               user = os.environ.get('DB_USER','root'),
+               password = os.environ.get('DB_PASSWORD','1234'),
+               database = os.environ.get('DB_DATABASE','mysql')
     )
-mycursor = mydb.cursor()
+          return mydb
+     except mysql.connector.Error as err:
+          print(f'Error connecting to databas: {err}')
+          return None
 
-def unique_id_exist(unique_id):   # it is used to test so no duplication is there
+
+def unique_id_exist(mycursor, unique_id):   
+     """Checks if a unique ID already exists in a database."""
      try:
           mycursor.execute('select 1 from test1 WHERE unique_id = %s LIMIT 1', (unique_id,))
           return mycursor.fetchone() is not None
@@ -234,41 +243,65 @@ def home():
 
                     filters = []
                     params = []
-
-                    if filter_type1 and filter_input1:
-                              if filter_type1 == 'source':
-                                   filters.append('source LIKE %s')
-                                   params.append(f'%{filter_input1}%')
-
-                              elif filter_type1 == 'date':
-                                   filters.append('PublishedDate LIKE %s')
-                                   params.append(f'%{filter_input1}%')
-
-                              elif filter_type1 == 'keywords':
-                                   filters.append('(title LIKE %s OR source LIKE %s OR PublishedDate LIKE %s OR unique_id LIKE %s)')
-                                   params.extend([f'%{filter_input1}%'] * 4)
-                              
-                    if filter_type2 and filter_input2:
-                         if filter_type2 == 'source':
+                    
+                    def add_filter_condition(filter_type, filter_input):
+                         if filter_type == 'source':
                               filters.append('source LIKE %s')
-                              params.append(f'%{filter_input2}%')
-                         
-                         elif filter_type2 == 'date':
+                              params.append(f'%{filter_input}%')
+                              return True
+                         elif filter_type == 'date':
                               filters.append('PublishedDate LIKE %s')
-                              params.append(f'%{filter_input2}%')
+                              params.append(f'%{filter_input}%')
+                         elif filter_type == 'keywords':
+                              filters.append('(title LIKE %s OR source LIKE %s or PublishedDate LIKE %s OR unique_id LIKE %s)')
+                              params.extend([f'%{filter_input}%'] * 4)
+                         return False
+
+                    filter1_applied = False
+                    if filter_type1 and filter_input1:
+                         filter1_applied = add_filter_condition(filter_type1, filter_input1)
+
+                    filter2_applied = False
+                    if filter_type2 and filter_input2:
+                         if filter_type2 == filter_type1 and filter1_applied:
+                              if filter_type2 == 'source':
+                                   filters[0] = f'({filters[0]} OR source LIKE %s)'
+                                   params.append(f'%{filter_input2}%')
+                                   filter2_applied = True
+
+                              elif filter_type2 == 'date':
+                                   filters[0] = f'({filters[0]} OR PublishedDate LIKE %s)'
+                                   filter2_applied = True 
+
+                              elif filter_type2 == 'keywords':
+                                   filters[0] = f'({filters[0]} OR title LIKE %s OR source LIIKE %s OR PublishedDate LIKE %s OR unique_id LIKE %s)'
+                                   params.extend([f'{filter_input2}%'] * 4)
+
+                              else:
+                                   add_filter_condition(filter_type2,filter_input2)
+                                   filter2_applied = True
                          
-                         elif filter_type2 == 'keywords':
-                              filters.append('(title LIKE %s OR source LIKE %s OR PublishedDate LIKE %s OR unique_id LIKE %s)')
-                              params.extend([f'%{filter_input2}%'] * 4)
+                         else:
+                              filter2_applied = add_filter_condition(filter_type2, filter_input2)
 
                     if filters:
                               query = "select * from test1 where " + " AND".join(filters)
                               try:
                                    mycursor.execute(query, tuple(params))
                                    inserted_data = mycursor.fetchall()
-                                   message = f'Showing results for {filter_type1} and {filter_type2}'
+                                   message = f'Showing results for '
+                                   applied_filters = []
+                                   if filter_type1 and filter_input1:
+                                        applied_filters.append(f'{filter_type1}:"{filter_input1}"')
+                                   if filter_type2 and filter_input2:
+                                         applied_filters.append(f'{filter_type2}: "{filter_input2}"')
+                                   message += ' and '.join(applied_filters) if applied_filters else "applied filters."
+
+                                   if not inserted_data:
+                                         message = "No results found for the applied filters."                         
                               except mysql.connector.Error as err:
                                    message =f'Database Error: {err}'
+                    
                     else:
                          inserted_data = []
                          message = "Please select at least one filter before applying."
